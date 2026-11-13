@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
-    <title>배경화면 꾸미기</title>
+    <title>Wallpaper Maker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Gaegu:wght@400;700&family=Black+Han+Sans&display=swap" rel="stylesheet" />
@@ -229,17 +229,17 @@
       <div class="brand">
         <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6" fill="currentColor" stroke="none"/><path d="m5 18 5-5 3 3 3-4 3 4"/></svg></span>
         <span>
-          <span class="name">배경화면 꾸미기</span>
-          <div class="sub">내 사진으로 만드는 고화질 배경화면 · 네컷</div>
+          <span class="name">Wallpaper Maker</span>
+          <div class="sub">High-res wallpapers from your photos · 4-cut strips</div>
         </span>
       </div>
-      <nav class="tabs" role="tablist" aria-label="도구 선택">
-        <button role="tab" id="tab-wall" aria-selected="true">배경화면</button>
-        <button role="tab" id="tab-fc" aria-selected="false">네컷 만들기</button>
+      <nav class="tabs" role="tablist" aria-label="Tool selection">
+        <button role="tab" id="tab-wall" aria-selected="true">Wallpaper</button>
+        <button role="tab" id="tab-fc" aria-selected="false">4-Cut Maker</button>
       </nav>
       <button class="btn-export" id="btn-export">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></svg>
-        <span id="export-label">PNG로 저장</span>
+        <span id="export-label">Save as PNG</span>
       </button>
     </header>
 
@@ -248,34 +248,34 @@
       <div class="layout">
         <div class="stage-wrap">
           <div class="stage">
-            <canvas class="editor" id="cv" width="3840" height="2160" aria-label="배경화면 편집 캔버스"></canvas>
+            <canvas class="editor" id="cv" width="3840" height="2160" aria-label="Wallpaper editor canvas"></canvas>
           </div>
           <div class="stage-meta">
-            <span class="res" id="cv-meta">노트북 16:9 · 3840 × 2160 px · PNG 무손실</span>
-            <span class="hint">요소를 끌어서 옮기고, 모서리 점을 끌면 크기가 바뀌어요</span>
+            <span class="res" id="cv-meta">Laptop 16:9 · 3840 × 2160 px · Lossless PNG</span>
+            <span class="hint">Drag elements to move them; drag a corner dot to resize</span>
           </div>
         </div>
 
         <div class="panel">
           <section class="card">
-            <h3><span class="dot" style="background:var(--sky)"></span>캔버스 · 배경</h3>
-            <div class="seg" role="group" aria-label="화면 비율">
-              <button id="preset-laptop" aria-pressed="true">노트북 16:9 · 3840×2160</button>
-              <button id="preset-ipad" aria-pressed="false">아이패드 4:3 · 2752×2064</button>
+            <h3><span class="dot" style="background:var(--sky)"></span>Canvas &amp; Background</h3>
+            <div class="seg" role="group" aria-label="Aspect ratio">
+              <button id="preset-laptop" aria-pressed="true">Laptop 16:9 · 3840×2160</button>
+              <button id="preset-ipad" aria-pressed="false">iPad 4:3 · 2752×2064</button>
             </div>
             <hr class="divider" />
-            <div class="row" role="group" aria-label="배경 종류">
+            <div class="row" role="group" aria-label="Background type">
               <div class="seg">
-                <button data-bgtype="color" aria-pressed="true">단색</button>
-                <button data-bgtype="gradient" aria-pressed="false">그라데이션</button>
-                <button data-bgtype="pattern" aria-pressed="false">패턴</button>
-                <button data-bgtype="photo" aria-pressed="false">사진</button>
+                <button data-bgtype="color" aria-pressed="true">Solid</button>
+                <button data-bgtype="gradient" aria-pressed="false">Gradient</button>
+                <button data-bgtype="pattern" aria-pressed="false">Pattern</button>
+                <button data-bgtype="photo" aria-pressed="false">Photo</button>
               </div>
             </div>
             <div id="bg-color-ui">
               <div class="row">
                 <div class="swatches" id="bg-swatches"></div>
-                <input type="color" id="bg-color-custom" value="#ffe3ea" aria-label="배경색 직접 선택" />
+                <input type="color" id="bg-color-custom" value="#ffe3ea" aria-label="Custom background color" />
               </div>
             </div>
             <div id="bg-gradient-ui" class="hidden">
@@ -284,126 +284,151 @@
             <div id="bg-pattern-ui" class="hidden">
               <div class="row">
                 <div class="seg" id="pattern-seg">
-                  <button data-pattern="dots" aria-pressed="true">도트</button>
-                  <button data-pattern="grid" aria-pressed="false">격자</button>
-                  <button data-pattern="check" aria-pressed="false">체크</button>
-                  <button data-pattern="stars" aria-pressed="false">별</button>
+                  <button data-pattern="dots" aria-pressed="true">Dots</button>
+                  <button data-pattern="grid" aria-pressed="false">Grid</button>
+                  <button data-pattern="check" aria-pressed="false">Check</button>
+                  <button data-pattern="stars" aria-pressed="false">Stars</button>
                 </div>
               </div>
               <div class="row">
                 <div class="swatches" id="pattern-swatches"></div>
-                <input type="color" id="pattern-color-custom" value="#fff0f3" aria-label="패턴 배경색 직접 선택" />
+                <input type="color" id="pattern-color-custom" value="#fff0f3" aria-label="Custom pattern color" />
               </div>
             </div>
             <div id="bg-photo-ui" class="hidden">
-              <p class="desc">배경으로 쓸 사진을 고르면 캔버스에 꽉 차게 들어가요. 원본 해상도 그대로 사용해요.</p>
+              <p class="desc">Pick a photo for the background and it fills the canvas. The original resolution is kept as is.</p>
               <label class="btn primary block" for="bg-photo-input">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5-5 3 3 3-4 5 6"/></svg>
-                배경 사진 고르기
+                Choose background photo
               </label>
               <input type="file" id="bg-photo-input" accept="image/*" />
             </div>
           </section>
 
           <section class="card">
-            <h3><span class="dot" style="background:var(--pink)"></span>내 사진 넣기</h3>
-            <p class="desc">사진을 올리면 요소로 추가돼요. 올린 사진은 이 기기 안에서만 처리되고, 원본 해상도를 그대로 유지해요. 사진을 선택하면 아래에서 배경을 지워 스티커로도 만들 수 있어요.</p>
+            <h3><span class="dot" style="background:var(--pink)"></span>Add your photos</h3>
+            <p class="desc">Uploaded photos are added as elements. Photos are processed only on this device and keep their original resolution. Select a photo to remove its background below and turn it into a sticker.</p>
             <label class="btn pink block" for="photo-input">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-              사진 추가하기
+              Add photos
             </label>
             <input type="file" id="photo-input" accept="image/*" multiple />
           </section>
 
+          <section class="card">
+            <h3><span class="dot" style="background:var(--sky)"></span>Film strip</h3>
+            <p class="desc">Add a film strip, select it on the canvas, then put a photo in each frame.</p>
+            <div class="row"><button class="btn primary block" id="btn-add-film">Add film strip</button></div>
+            <div class="row" style="margin-top:8px">
+              <label class="btn" style="flex:1" for="film-file-0">Frame 1 photo</label>
+              <label class="btn" style="flex:1" for="film-file-1">Frame 2 photo</label>
+              <label class="btn" style="flex:1" for="film-file-2">Frame 3 photo</label>
+            </div>
+            <input type="file" id="film-file-0" accept="image/*" />
+            <input type="file" id="film-file-1" accept="image/*" />
+            <input type="file" id="film-file-2" accept="image/*" />
+          </section>
+
           <section class="card" id="sticker-maker">
-            <h3><span class="dot" style="background:var(--mint)"></span>스티커로 만들기</h3>
-            <p class="desc" id="sm-note">아직 선택한 사진이 없어요. 사진을 추가한 뒤 캔버스에서 그 사진을 누르면, 여기서 배경을 지워 스티커로 만들 수 있어요.</p>
-            <p class="desc">선택한 사진의 배경을 지워 스티커로 바꿔요. 사진 가장자리의 배경색을 따라 지우니까, 배경이 단색에 가까울수록 깔끔하게 잘려요.</p>
+            <h3><span class="dot" style="background:var(--mint)"></span>Make a sticker</h3>
+            <p class="desc" id="sm-note">No photo selected yet. Add a photo, tap it on the canvas, then remove its background here to make a sticker.</p>
+            <p class="desc">Remove the selected photo's background to turn it into a sticker. It erases by following the background color at the photo's edges, so the closer the background is to a solid color, the cleaner the cut.</p>
             <div class="row">
               <div class="field">
-                <label for="tol-range">배경 지우기 강도 <span class="val" id="tol-val">48</span></label>
+                <label for="tol-range">Background removal strength <span class="val" id="tol-val">48</span></label>
                 <input type="range" id="tol-range" min="8" max="120" value="48" />
               </div>
             </div>
             <div class="row">
-              <button class="btn primary" id="btn-cutout" style="flex:1">배경 지우기</button>
-              <button class="btn" id="btn-uncut" disabled>원본으로</button>
+              <button class="btn primary" id="btn-cutout" style="flex:1">Remove background</button>
+              <button class="btn" id="btn-uncut" disabled>Restore original</button>
             </div>
             <hr class="divider" />
             <div class="row">
               <div class="field">
-                <label for="border-range">흰 테두리 두께 <span class="val" id="border-val">0</span></label>
+                <label for="border-range">White outline thickness <span class="val" id="border-val">0</span></label>
                 <input type="range" id="border-range" min="0" max="60" value="0" />
               </div>
             </div>
-            <p class="desc" style="margin-top:8px">테두리를 주면 다꾸 스티커처럼 보여요. 강아지·최애 사진에 딱이에요.</p>
+            <p class="desc" style="margin-top:8px">An outline makes it look like a deco sticker. Perfect for your dog or your favorite photos.</p>
           </section>
 
           <section class="card">
-            <h3><span class="dot" style="background:var(--butter)"></span>스티커</h3>
-            <p class="desc">누르면 캔버스 가운데에 붙어요. 색은 아래에서 바꿀 수 있어요.</p>
+            <h3><span class="dot" style="background:var(--butter)"></span>Stickers</h3>
+            <p class="desc">Tap to place it in the center of the canvas. Change its color below.</p>
             <div class="sticker-grid" id="sticker-grid"></div>
             <div class="row" style="margin-top:10px">
               <div class="swatches" id="sticker-swatches"></div>
-              <input type="color" id="sticker-color-custom" value="#ff5d7e" aria-label="스티커 색 직접 선택" />
+              <input type="color" id="sticker-color-custom" value="#ff5d7e" aria-label="Custom sticker color" />
             </div>
           </section>
 
           <section class="card">
-            <h3><span class="dot" style="background:var(--sky)"></span>글자 넣기</h3>
+            <h3><span class="dot" style="background:var(--sky)"></span>Add text</h3>
             <div class="row">
               <div class="field">
-                <label for="text-input">내용</label>
-                <input type="text" id="text-input" placeholder="예: 우리 강아지 최고" maxlength="40" />
+                <label for="text-input">Text</label>
+                <input type="text" id="text-input" placeholder="e.g. Best dog ever" maxlength="40" />
               </div>
             </div>
             <div class="row">
               <div class="field">
-                <label for="text-font">글꼴</label>
+                <label for="text-font">Font</label>
                 <select id="text-font">
-                  <option value="Jua">주아체 (둥글둥글)</option>
-                  <option value="Gaegu">개구체 (손글씨)</option>
-                  <option value="Black Han Sans">블랙한스 (굵게)</option>
-                  <option value="Gowun Dodum">고운돋움 (깔끔)</option>
+                  <option value="Jua">Jua (rounded)</option>
+                  <option value="Gaegu">Gaegu (handwriting)</option>
+                  <option value="Black Han Sans">Black Han Sans (bold)</option>
+                  <option value="Gowun Dodum">Gowun Dodum (clean)</option>
                 </select>
               </div>
               <div class="field" style="flex:0 0 auto; min-width:0">
-                <label>색</label>
-                <input type="color" id="text-color" value="#26202a" aria-label="글자 색" />
+                <label>Color</label>
+                <input type="color" id="text-color" value="#26202a" aria-label="Text color" />
               </div>
             </div>
-            <div class="row"><button class="btn primary block" id="btn-add-text">글자 추가</button></div>
+            <div class="row"><button class="btn primary block" id="btn-add-text">Add text</button></div>
           </section>
 
           <section class="card hidden" id="sel-card">
-            <h3><span class="dot" style="background:var(--pink)"></span>선택한 요소</h3>
+            <h3><span class="dot" style="background:var(--pink)"></span>Selected element</h3>
             <div class="row">
               <div class="field">
-                <label for="sel-scale">크기 <span class="val" id="sel-scale-val"></span></label>
+                <label for="sel-scale">Size <span class="val" id="sel-scale-val"></span></label>
                 <input type="range" id="sel-scale" min="5" max="400" value="100" />
               </div>
             </div>
             <div class="row">
               <div class="field">
-                <label for="sel-rot">회전 <span class="val" id="sel-rot-val"></span></label>
+                <label for="sel-rot">Rotation <span class="val" id="sel-rot-val"></span></label>
                 <input type="range" id="sel-rot" min="-180" max="180" value="0" />
               </div>
             </div>
             <div class="row" id="sel-opacity-row">
               <div class="field">
-                <label for="sel-opacity">투명도 <span class="val" id="sel-opacity-val"></span></label>
+                <label for="sel-opacity">Opacity <span class="val" id="sel-opacity-val"></span></label>
                 <input type="range" id="sel-opacity" min="10" max="100" value="100" />
               </div>
             </div>
+            <div class="row hidden" id="tape-opts">
+              <div class="field">
+                <label>Masking tape pattern</label>
+                <div class="row" role="group" aria-label="Tape pattern">
+                  <button data-tapepat="solid" aria-pressed="true">Solid</button>
+                  <button data-tapepat="dots" aria-pressed="false">Dots</button>
+                  <button data-tapepat="stripes" aria-pressed="false">Stripes</button>
+                  <button data-tapepat="check" aria-pressed="false">Check</button>
+                </div>
+              </div>
+            </div>
             <div class="row">
-              <button class="btn" id="btn-dup" style="flex:1">복사</button>
-              <button class="btn" id="btn-flip" style="flex:1">좌우 반전</button>
-              <button class="btn danger" id="btn-del" style="flex:1">삭제</button>
+              <button class="btn" id="btn-dup" style="flex:1">Duplicate</button>
+              <button class="btn" id="btn-flip" style="flex:1">Flip</button>
+              <button class="btn danger" id="btn-del" style="flex:1">Delete</button>
             </div>
           </section>
 
           <section class="card">
-            <h3><span class="dot" style="background:var(--mint)"></span>올라간 요소 <span class="val" id="layer-count"></span></h3>
+            <h3><span class="dot" style="background:var(--mint)"></span>Elements <span class="val" id="layer-count"></span></h3>
             <div class="layer-list" id="layer-list"></div>
           </section>
         </div>
@@ -415,59 +440,59 @@
       <div class="layout">
         <div class="stage-wrap">
           <div class="stage">
-            <canvas class="editor fc" id="fc-cv" width="1600" height="4868" aria-label="네컷 편집 캔버스"></canvas>
+            <canvas class="editor fc" id="fc-cv" width="1600" height="4868" aria-label="4-cut editor canvas"></canvas>
           </div>
           <div class="stage-meta">
-            <span class="res">네컷 스트립 · 1600 × 4868 px · PNG 무손실</span>
-            <span class="hint">칸을 눌러 사진을 고르고, 끌어서 위치를 맞추세요</span>
+            <span class="res">4-cut strip · 1600 × 4868 px · Lossless PNG</span>
+            <span class="hint">Tap a frame to choose a photo, then drag to position it</span>
           </div>
         </div>
 
         <div class="panel">
           <section class="card">
-            <h3><span class="dot" style="background:var(--pink)"></span>사진 4장</h3>
-            <p class="desc">칸마다 사진을 넣어요. 선택한 칸의 사진은 캔버스에서 끌어서 위치를, 아래 슬라이더로 크기를 맞출 수 있어요. 원본 해상도 그대로 들어가요.</p>
+            <h3><span class="dot" style="background:var(--pink)"></span>4 photos</h3>
+            <p class="desc">Put a photo in each frame. Drag the selected frame's photo on the canvas to position it and use the slider below to size it. Photos keep their original resolution.</p>
             <div id="fc-slots"></div>
           </section>
 
           <section class="card">
-            <h3><span class="dot" style="background:var(--butter)"></span>선택한 칸 편집</h3>
+            <h3><span class="dot" style="background:var(--butter)"></span>Edit selected frame</h3>
             <div class="row">
               <div class="field">
-                <label for="fc-zoom">사진 크기 <span class="val" id="fc-zoom-val">100%</span></label>
+                <label for="fc-zoom">Photo size <span class="val" id="fc-zoom-val">100%</span></label>
                 <input type="range" id="fc-zoom" min="100" max="350" value="100" />
               </div>
             </div>
             <div class="row">
-              <button class="btn" id="fc-center" style="flex:1">가운데로 맞추기</button>
-              <button class="btn danger" id="fc-remove" style="flex:1">사진 빼기</button>
+              <button class="btn" id="fc-center" style="flex:1">Center</button>
+              <button class="btn danger" id="fc-remove" style="flex:1">Remove photo</button>
             </div>
           </section>
 
           <section class="card">
-            <h3><span class="dot" style="background:var(--sky)"></span>프레임 꾸미기</h3>
+            <h3><span class="dot" style="background:var(--sky)"></span>Frame style</h3>
             <div class="row">
               <div class="swatches" id="fc-frame-swatches"></div>
-              <input type="color" id="fc-frame-custom" value="#ffffff" aria-label="프레임 색 직접 선택" />
+              <input type="color" id="fc-frame-custom" value="#ffffff" aria-label="Custom frame color" />
             </div>
             <hr class="divider" />
             <div class="row">
               <div class="field">
-                <label for="fc-caption">아래 문구</label>
-                <input type="text" id="fc-caption" placeholder="예: 2026.11.13 우리의 하루" maxlength="30" />
+                <label for="fc-caption">Caption</label>
+                <input type="text" id="fc-caption" placeholder="e.g. 2026.11.13 Our day" maxlength="30" />
               </div>
               <div class="field" style="flex:0 0 auto; min-width:0">
-                <label>문구 색</label>
-                <input type="color" id="fc-caption-color" value="#26202a" aria-label="문구 색" />
+                <label>Caption color</label>
+                <input type="color" id="fc-caption-color" value="#26202a" aria-label="Caption color" />
               </div>
             </div>
-            <p class="desc" style="margin-top:8px">프레임 색에 따라 문구 색도 어울리게 골라보세요.</p>
+            <p class="desc" style="margin-top:8px">Pick a caption color that goes with the frame color.</p>
           </section>
         </div>
       </div>
     </div>
 
-    <div class="busy" id="busy"><div class="box"><span class="spin"></span><span id="busy-msg">처리 중…</span></div></div>
+    <div class="busy" id="busy"><div class="box"><span class="spin"></span><span id="busy-msg">Working…</span></div></div>
     <div class="toast" id="toast" role="status"></div>
 
     <script>
@@ -520,29 +545,69 @@
     function bowPath(c) { c.beginPath(); c.moveTo(0, 0); c.bezierCurveTo(-46, -34, -52, 22, -6, 10); c.bezierCurveTo(-50, 30, -44, -26, 0, 0); c.moveTo(0, 0); c.bezierCurveTo(46, -34, 52, 22, 6, 10); c.bezierCurveTo(50, 30, 44, -26, 0, 0); c.closePath(); c.moveTo(-8, -9); c.arc(0, 0, 10, 0, Math.PI * 2); }
     function smilePath(c) { c.beginPath(); c.arc(0, 0, 42, 0, Math.PI * 2); c.moveTo(-16, -12); c.arc(-16, -12, 4.5, 0, Math.PI * 2); c.moveTo(16, -12); c.arc(16, -12, 4.5, 0, Math.PI * 2); c.moveTo(20, 10); c.arc(0, 8, 21, Math.PI * 0.15, Math.PI * 0.85); }
     function bonePath(c) { c.save(); c.rotate(Math.PI / 4); c.beginPath(); c.moveTo(-26, -9); c.lineTo(26, -9); c.lineTo(26, 9); c.lineTo(-26, 9); c.closePath(); c.moveTo(-15, -9); c.arc(-26, -9, 11, 0, Math.PI * 2); c.moveTo(-15, 9); c.arc(-26, 9, 11, 0, Math.PI * 2); c.moveTo(37, -9); c.arc(26, -9, 11, 0, Math.PI * 2); c.moveTo(37, 9); c.arc(26, 9, 11, 0, Math.PI * 2); c.restore(); }
-    function tapeDraw(c, w, h, color) {
-      c.save();
-      c.fillStyle = color; c.globalAlpha *= 0.82;
+    function tapePath(c, w, h) {
       const tw = w, th = h, jag = th * 0.16;
       c.beginPath();
       c.moveTo(-tw / 2, -th / 2); c.lineTo(-tw / 2 + jag, -th / 2 + jag); c.lineTo(-tw / 2, -th / 2 + jag * 2);
       c.lineTo(-tw / 2 + jag, 0); c.lineTo(-tw / 2, th / 2 - jag * 2); c.lineTo(-tw / 2 + jag, th / 2 - jag); c.lineTo(-tw / 2, th / 2);
       c.lineTo(tw / 2, th / 2); c.lineTo(tw / 2 - jag, th / 2 - jag); c.lineTo(tw / 2, th / 2 - jag * 2);
       c.lineTo(tw / 2 - jag, 0); c.lineTo(tw / 2, -th / 2 + jag * 2); c.lineTo(tw / 2 - jag, -th / 2 + jag); c.lineTo(tw / 2, -th / 2);
-      c.closePath(); c.fill(); c.restore();
+      c.closePath();
+    }
+    function tapeDraw(c, w, h, color, pattern) {
+      c.save();
+      c.globalAlpha *= 0.82;
+      tapePath(c, w, h);
+      c.fillStyle = color; c.fill();
+      if (pattern && pattern !== 'solid') {
+        c.clip();
+        const ink = luminance(color) > 0.5 ? 'rgba(0,0,0,0.20)' : 'rgba(255,255,255,0.38)';
+        c.strokeStyle = ink; c.fillStyle = ink;
+        if (pattern === 'dots') {
+          const step = h * 0.42, r = h * 0.075;
+          for (let y = -h / 2 + step * 0.6; y < h / 2; y += step)
+            for (let x = -w / 2 + step * 0.6; x < w / 2; x += step) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
+        } else if (pattern === 'stripes') {
+          c.lineWidth = h * 0.09;
+          for (let x = -w / 2 - h; x < w / 2 + h; x += h * 0.34) { c.beginPath(); c.moveTo(x, h / 2); c.lineTo(x + h, -h / 2); c.stroke(); }
+        } else if (pattern === 'check') {
+          c.lineWidth = h * 0.055;
+          for (let x = -w / 2; x <= w / 2; x += h * 0.3) { c.beginPath(); c.moveTo(x, -h / 2); c.lineTo(x, h / 2); c.stroke(); }
+          for (let y = -h / 2; y <= h / 2; y += h * 0.3) { c.beginPath(); c.moveTo(-w / 2, y); c.lineTo(w / 2, y); c.stroke(); }
+        }
+      }
+      c.restore();
+    }
+
+    function postitDraw(c, w, h, color) {
+      c.save();
+      const fold = Math.min(w, h) * 0.22;
+      const x0 = -w / 2, y0 = -h / 2, x1 = w / 2, y1 = h / 2;
+      c.beginPath();
+      c.moveTo(x0, y0); c.lineTo(x1, y0); c.lineTo(x1, y1 - fold); c.lineTo(x1 - fold, y1); c.lineTo(x0, y1);
+      c.closePath();
+      c.fillStyle = color; c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.20)';
+      c.fillRect(x0, y0, w, h * 0.14);
+      c.beginPath();
+      c.moveTo(x1 - fold, y1); c.lineTo(x1, y1 - fold); c.lineTo(x1 - fold, y1 - fold);
+      c.closePath();
+      c.fillStyle = 'rgba(0,0,0,0.13)'; c.fill();
+      c.restore();
     }
     const SHAPES = {
-      heart:  { label: '하트', path: heartPath },
-      star:   { label: '별', path: starPath },
-      sparkle:{ label: '반짝이', path: sparklePath },
-      flower: { label: '꽃', path: flowerPath },
-      cloud:  { label: '구름', path: cloudPath },
-      note:   { label: '음표', path: notePath },
-      moon:   { label: '달', path: moonPath },
-      bow:    { label: '리본', path: bowPath },
-      smile:  { label: '스마일', path: smilePath, stroke: true },
-      bone:   { label: '뼈다귀', path: bonePath },
-      tape:   { label: '테이프', path: null },
+      heart:  { label: 'Heart', path: heartPath },
+      star:   { label: 'Star', path: starPath },
+      sparkle:{ label: 'Sparkle', path: sparklePath },
+      flower: { label: 'Flower', path: flowerPath },
+      cloud:  { label: 'Cloud', path: cloudPath },
+      note:   { label: 'Music note', path: notePath },
+      moon:   { label: 'Moon', path: moonPath },
+      bow:    { label: 'Bow', path: bowPath },
+      smile:  { label: 'Smile', path: smilePath, stroke: true },
+      bone:   { label: 'Bone', path: bonePath },
+      tape:   { label: 'Tape', path: null },
+      postit: { label: 'Post-it', path: null },
     };
     const SHAPE_SVG = {
       heart: '<path d="M50 84C14 56 6 34 22 20c10-9 24-6 28 4 4-10 18-13 28-4 16 14 8 36-28 64z"/>',
@@ -556,12 +621,13 @@
       smile: '<circle cx="50" cy="50" r="40" fill="none" stroke-width="7"/><circle cx="36" cy="42" r="5"/><circle cx="64" cy="42" r="5"/><path d="M32 62a20 20 0 0036 0" fill="none" stroke-width="7" stroke-linecap="round"/>',
       bone: '<g transform="rotate(45 50 50)"><rect x="26" y="41" width="48" height="18" rx="9"/><circle cx="26" cy="41" r="11"/><circle cx="26" cy="59" r="11"/><circle cx="74" cy="41" r="11"/><circle cx="74" cy="59" r="11"/></g>',
       tape: '<rect x="8" y="34" width="84" height="32" rx="3" opacity=".85"/>',
+      postit: '<path d="M24 18h52v38l-14 14H24z"/><path d="M62 70l14-14H62z" opacity=".45"/>',
     };
 
     /* ================= WALLPAPER state ================= */
     const PRESETS = {
-      laptop: { w: 3840, h: 2160, label: '노트북 16:9 · 3840 × 2160 px · PNG 무손실' },
-      ipad:   { w: 2752, h: 2064, label: '아이패드 4:3 · 2752 × 2064 px · PNG 무손실' },
+      laptop: { w: 3840, h: 2160, label: 'Laptop 16:9 · 3840 × 2160 px · Lossless PNG' },
+      ipad:   { w: 2752, h: 2064, label: 'iPad 4:3 · 2752 × 2064 px · Lossless PNG' },
     };
     const cv = $('#cv'), ctx = cv.getContext('2d');
     const W = {
@@ -583,8 +649,9 @@
     function sel() { return W.layers.find(l => l.id === W.selectedId) || null; }
     function layerDims(l) {
       const s = l.scale;
+      if (l.kind === 'film') return { w: 1150 * s, h: 400 * s };
       if (l.kind === 'photo') return { w: l.img.width * s, h: l.img.height * s };
-      if (l.kind === 'sticker') return l.shape === 'tape' ? { w: 520 * s, h: 170 * s } : { w: 300 * s, h: 300 * s };
+      if (l.kind === 'sticker') return l.shape === 'tape' ? { w: 520 * s, h: 170 * s } : l.shape === 'postit' ? { w: 340 * s, h: 340 * s } : { w: 300 * s, h: 300 * s };
       return { w: l.w * s, h: l.h * s };
     }
 
@@ -632,9 +699,55 @@
         ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
       } else { ctx.fillStyle = b.color; ctx.fillRect(0, 0, w, h); }
     }
+    function rrPath(g, x, y, w, h, r) {
+      g.beginPath();
+      g.moveTo(x + r, y);
+      g.arcTo(x + w, y, x + w, y + h, r);
+      g.arcTo(x + w, y + h, x, y + h, r);
+      g.arcTo(x, y + h, x, y, r);
+      g.arcTo(x, y, x + w, y, r);
+      g.closePath();
+    }
+    function drawCoverImg(g, img, x, y, w, h) {
+      const s = Math.max(w / img.width, h / img.height);
+      const dw = img.width * s, dh = img.height * s;
+      g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+      g.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+      g.restore();
+    }
+    function drawFilmStrip(g, l) {
+      const d = layerDims(l);
+      const w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.save();
+      g.fillStyle = '#17141a';
+      rrPath(g, x0, y0, w, h, h * 0.045); g.fill();
+      const holeW = w * 0.026, holeH = h * 0.088, band = h * 0.052;
+      g.fillStyle = 'rgba(255,255,255,0.92)';
+      const n = Math.max(6, Math.floor(w / (holeW * 2.1)));
+      for (let i = 0; i < n; i++) {
+        const hx = x0 + (i + 0.5) * (w / n) - holeW / 2;
+        rrPath(g, hx, y0 + band, holeW, holeH, holeH * 0.32); g.fill();
+        rrPath(g, hx, y0 + h - band - holeH, holeW, holeH, holeH * 0.32); g.fill();
+      }
+      const pad = w * 0.022, gap = w * 0.016, fy = y0 + h * 0.185, fh = h * 0.63, fw = (w - pad * 2 - gap * 2) / 3;
+      for (let i = 0; i < 3; i++) {
+        const fx = x0 + pad + i * (fw + gap);
+        const img = l.frames && l.frames[i];
+        if (img) drawCoverImg(g, img, fx, fy, fw, fh);
+        else {
+          g.fillStyle = '#2b2531'; g.fillRect(fx, fy, fw, fh);
+          g.fillStyle = 'rgba(255,255,255,0.35)';
+          g.font = Math.round(fh * 0.34) + 'px sans-serif';
+          g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.fillText(String(i + 1), fx + fw / 2, fy + fh / 2);
+        }
+      }
+      g.restore();
+    }
     function drawStickerShape(g, l) {
       const d = layerDims(l);
-      if (l.shape === 'tape') { tapeDraw(g, d.w, d.h, l.color); return; }
+      if (l.shape === 'tape') { tapeDraw(g, d.w, d.h, l.color, l.pattern || 'solid'); return; }
+      if (l.shape === 'postit') { postitDraw(g, d.w, d.h, l.color); return; }
       const k = d.w / 100; // shapes are authored in a 100-unit box
       g.save();
       g.scale(k, k);
@@ -667,6 +780,7 @@
         ctx.globalAlpha = l.opacity;
         if (l.kind === 'photo') ctx.drawImage(l.display(), -d.w / 2, -d.h / 2, d.w, d.h);
         else if (l.kind === 'sticker') drawStickerShape(ctx, l);
+        else if (l.kind === 'film') drawFilmStrip(ctx, l);
         else if (l.kind === 'text') { ctx.scale(l.scale, l.scale); drawTextLayer(ctx, l); }
         ctx.restore();
       }
@@ -762,6 +876,9 @@
       const s = sel();
       $('#sel-card').classList.toggle('hidden', !s);
       if (!s) return;
+      const isTape = s.kind === 'sticker' && s.shape === 'tape';
+      $('#tape-opts').classList.toggle('hidden', !isTape);
+      if (isTape) document.querySelectorAll('[data-tapepat]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tapepat === (s.pattern || 'solid'))));
       $('#sel-scale').value = Math.round(s.scale * 100);
       $('#sel-scale-val').textContent = Math.round(s.scale * 100) + '%';
       $('#sel-rot').value = Math.round(s.rot);
@@ -771,9 +888,9 @@
     }
     function renderLayerList() {
       const list = $('#layer-list'); list.innerHTML = '';
-      $('#layer-count').textContent = W.layers.length ? W.layers.length + '개' : '';
+      $('#layer-count').textContent = W.layers.length ? String(W.layers.length) : '';
       if (!W.layers.length) {
-        list.innerHTML = '<div class="empty-note">아직 아무것도 없어요.<br>사진을 올리거나 스티커·글자를 붙여보세요.</div>';
+        list.innerHTML = '<div class="empty-note">Nothing here yet.<br>Add a photo or place stickers and text.</div>';
         return;
       }
       [...W.layers].reverse().forEach((l) => {
@@ -782,8 +899,8 @@
         item.className = 'layer-item' + (l.id === W.selectedId ? ' sel' : '');
         item.innerHTML = `
           <button class="nm" type="button"></button>
-          <button class="mini" type="button" data-act="up" aria-label="앞으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 15 6-6 6 6"/></svg></button>
-          <button class="mini" type="button" data-act="down" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>`;
+          <button class="mini" type="button" data-act="up" aria-label="Bring forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 15 6-6 6 6"/></svg></button>
+          <button class="mini" type="button" data-act="down" aria-label="Send backward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>`;
         item.querySelector('.nm').textContent = l.name;
         item.querySelector('.nm').addEventListener('click', () => selectLayer(l.id));
         item.querySelector('[data-act="up"]').addEventListener('click', () => {
@@ -795,18 +912,40 @@
         list.appendChild(item);
       });
     }
+    document.querySelectorAll('[data-tapepat]').forEach(b => b.addEventListener('click', () => {
+      const s = sel(); if (!s) return;
+      s.pattern = b.dataset.tapepat; syncSelPanel(); renderWall();
+    }));
+    $('#btn-add-film').addEventListener('click', () => {
+      const { w, h } = PRESETS[W.preset];
+      const layer = { id: uid++, kind: 'film', name: 'Film strip', frames: [null, null, null], x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
+      W.layers.push(layer); selectLayer(layer.id); renderWall(); renderLayerList();
+      toast('Film strip added. Put a photo in each frame');
+    });
+    [0, 1, 2].forEach(i => {
+      $('#film-file-' + i).addEventListener('change', async (e) => {
+        const f = e.target.files[0]; e.target.value = '';
+        if (!f) return;
+        const s = sel();
+        if (!s || s.kind !== 'film') { toast('Select a film strip first'); return; }
+        setBusy(true, 'Loading photo…');
+        try { s.frames[i] = await loadImageFromFile(f); renderWall(); toast('Frame ' + (i + 1) + ' photo set'); }
+        catch { toast("Couldn't load that photo"); }
+        setBusy(false);
+      });
+    });
     $('#sel-scale').addEventListener('input', (e) => { const s = sel(); if (s) { s.scale = e.target.value / 100; $('#sel-scale-val').textContent = e.target.value + '%'; renderWall(); } });
     $('#sel-rot').addEventListener('input', (e) => { const s = sel(); if (s) { s.rot = +e.target.value; $('#sel-rot-val').textContent = e.target.value + '°'; renderWall(); } });
     $('#sel-opacity').addEventListener('input', (e) => { const s = sel(); if (s) { s.opacity = e.target.value / 100; $('#sel-opacity-val').textContent = e.target.value + '%'; renderWall(); } });
     $('#btn-del').addEventListener('click', () => {
       const s = sel(); if (!s) return;
       W.layers = W.layers.filter(l => l.id !== s.id);
-      selectLayer(null); toast('삭제했어요');
+      selectLayer(null); toast('Deleted');
     });
     $('#btn-dup').addEventListener('click', () => {
       const s = sel(); if (!s) return;
       const { w } = PRESETS[W.preset];
-      const copy = { ...s, id: uid++, x: s.x + w * 0.03, y: s.y + w * 0.03, name: s.name + ' 복사' };
+      const copy = { ...s, id: uid++, x: s.x + w * 0.03, y: s.y + w * 0.03, name: s.name + ' copy' };
       W.layers.push(copy); selectLayer(copy.id);
     });
     $('#btn-flip').addEventListener('click', () => { const s = sel(); if (s) { s.flip = !s.flip; renderWall(); } });
@@ -831,7 +970,7 @@
       colors.forEach(c => {
         const b = document.createElement('button');
         b.className = 'swatch'; b.style.background = c; b.type = 'button';
-        b.setAttribute('aria-pressed', c === current); b.setAttribute('aria-label', '색상 ' + c);
+        b.setAttribute('aria-pressed', c === current); b.setAttribute('aria-label', 'Color ' + c);
         b.addEventListener('click', () => onPick(c));
         el.appendChild(b);
       });
@@ -844,7 +983,7 @@
         b.className = 'swatch'; b.type = 'button';
         b.style.background = `linear-gradient(135deg, ${g[0]}, ${g[1]})`;
         b.setAttribute('aria-pressed', W.bg.grad === i);
-        b.setAttribute('aria-label', '그라데이션 ' + (i + 1));
+        b.setAttribute('aria-label', 'Gradient ' + (i + 1));
         b.addEventListener('click', () => { W.bg.grad = i; W.bg.type = 'gradient'; syncBgUI(); renderWall(); });
         gEl.appendChild(b);
       });
@@ -876,23 +1015,23 @@
     }));
     $('#bg-photo-input').addEventListener('change', async (e) => {
       const f = e.target.files[0]; if (!f) return;
-      setBusy(true, '배경 사진 불러오는 중…');
-      try { W.bg.img = await loadImageFromFile(f); W.bg.type = 'photo'; syncBgUI(); renderWall(); toast('배경 사진을 넣었어요'); }
-      catch { toast('사진을 불러오지 못했어요'); }
+      setBusy(true, 'Loading background photo…');
+      try { W.bg.img = await loadImageFromFile(f); W.bg.type = 'photo'; syncBgUI(); renderWall(); toast('Background photo added'); }
+      catch { toast("Couldn't load that photo"); }
       setBusy(false); e.target.value = '';
     });
 
     /* ================= add photos / stickers / text ================= */
     $('#photo-input').addEventListener('change', async (e) => {
       const files = Array.from(e.target.files || []); if (!files.length) return;
-      setBusy(true, '사진 불러오는 중…');
+      setBusy(true, 'Loading photo…');
       const { w, h } = PRESETS[W.preset];
       for (const f of files) {
         try {
           const img = await loadImageFromFile(f);
           const fit = Math.min((w * 0.55) / img.width, (h * 0.75) / img.height, 1);
           const layer = {
-            id: uid++, kind: 'photo', name: f.name.replace(/\.[^.]+$/, '') || '사진',
+            id: uid++, kind: 'photo', name: f.name.replace(/\.[^.]+$/, '') || 'Photo',
             img, cut: null, displayCanvas: null, tol: 48, borderPx: 0,
             x: w / 2 + (Math.random() - 0.5) * w * 0.08, y: h / 2 + (Math.random() - 0.5) * h * 0.08,
             scale: fit || 0.3, rot: 0, opacity: 1, flip: false,
@@ -903,18 +1042,18 @@
         } catch { /* skip unreadable file */ }
       }
       setBusy(false); e.target.value = '';
-      toast('사진을 추가했어요. 아래 "스티커로 만들기"에서 배경을 지울 수 있어요');
+      toast('Photo added. Remove its background under "Make a sticker" below');
     });
 
     const grid = $('#sticker-grid');
     Object.keys(SHAPES).forEach(key => {
       const b = document.createElement('button');
-      b.type = 'button'; b.setAttribute('aria-label', SHAPES[key].label + ' 스티커 추가');
+      b.type = 'button'; b.setAttribute('aria-label', SHAPES[key].label + ' sticker');
       b.innerHTML = `<svg viewBox="0 0 100 100" fill="currentColor" stroke="currentColor" style="color:var(--pink)">${SHAPE_SVG[key]}</svg>`;
       b.addEventListener('click', () => {
         const { w, h } = PRESETS[W.preset];
         const layer = {
-          id: uid++, kind: 'sticker', shape: key, name: SHAPES[key].label + ' 스티커',
+          id: uid++, kind: 'sticker', shape: key, name: SHAPES[key].label + ' sticker',
           color: W.stickerColor, x: w / 2, y: h / 2,
           scale: (w * 0.10) / 300, rot: 0, opacity: 1, flip: false,
         };
@@ -929,14 +1068,14 @@
 
     $('#btn-add-text').addEventListener('click', () => {
       const text = $('#text-input').value.trim();
-      if (!text) { toast('글자 내용을 먼저 입력하세요'); return; }
+      if (!text) { toast('Type some text first'); return; }
       const { w, h } = PRESETS[W.preset];
       const font = $('#text-font').value;
       const meas = document.createElement('canvas').getContext('2d');
       const fontSize = w * 0.045;
       meas.font = `${fontSize}px "${font}", sans-serif`;
       const layer = {
-        id: uid++, kind: 'text', name: '글자: ' + text, text, font,
+        id: uid++, kind: 'text', name: 'Text: ' + text, text, font,
         color: $('#text-color').value, outline: null,
         fontSize, w: meas.measureText(text).width, h: fontSize * 1.25,
         x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false,
@@ -1015,15 +1154,15 @@
     $('#tol-range').addEventListener('input', (e) => { $('#tol-val').textContent = e.target.value; const s = sel(); if (s) s.tol = +e.target.value; });
     $('#btn-cutout').addEventListener('click', () => {
       const s = sel(); if (!s || s.kind !== 'photo') return;
-      setBusy(true, '배경 지우는 중… (원본 해상도 그대로 처리해요)');
+      setBusy(true, 'Removing background… (at full original resolution)');
       setTimeout(() => {
         try {
           s.cut = floodRemove(s.img, s.tol);
           refreshPhotoDisplay(s);
           $('#btn-uncut').disabled = false;
           renderWall();
-          toast('스티커로 잘랐어요. 가장자리가 아쉬우면 강도를 바꿔 다시 해보세요');
-        } catch (err) { toast('처리에 실패했어요. 다른 사진으로 시도해보세요'); }
+          toast('Cut out as a sticker. If the edges look rough, adjust the strength and try again');
+        } catch (err) { toast('Something went wrong. Try another photo'); }
         setBusy(false);
       }, 30);
     });
@@ -1031,13 +1170,13 @@
       const s = sel(); if (!s) return;
       s.cut = null; s.displayCanvas = null;
       $('#btn-uncut').disabled = true;
-      renderWall(); toast('원본 사진으로 되돌렸어요');
+      renderWall(); toast('Restored the original photo');
     });
     $('#border-range').addEventListener('input', (e) => {
       $('#border-val').textContent = e.target.value;
       const s = sel(); if (!s || s.kind !== 'photo') return;
       s.borderPx = +e.target.value;
-      if (!s.cut && s.borderPx > 0) { toast('테두리는 배경을 지운 뒤에 붙어요. 먼저 "배경 지우기"를 눌러주세요'); return; }
+      if (!s.cut && s.borderPx > 0) { toast('The outline is added after the background is removed. Tap "Remove background" first'); return; }
       refreshPhotoDisplay(s); renderWall();
     });
 
@@ -1101,20 +1240,20 @@
         const row = document.createElement('div');
         row.className = 'row'; row.style.marginTop = i ? '8px' : '0';
         row.innerHTML = `
-          <button class="btn" type="button" style="flex:0 0 74px" data-act="sel">${i + 1}번 칸</button>
-          <label class="btn ${s ? '' : 'pink'}" style="flex:1" for="fc-file-${i}">${s ? '사진 바꾸기' : '사진 넣기'}</label>
+          <button class="btn" type="button" style="flex:0 0 74px" data-act="sel">Frame ${i + 1}</button>
+          <label class="btn ${s ? '' : 'pink'}" style="flex:1" for="fc-file-${i}">${s ? 'Change photo' : 'Add photo'}</label>
           <input type="file" id="fc-file-${i}" accept="image/*" />`;
         row.querySelector('[data-act="sel"]').style.borderColor = fc.sel === i ? 'var(--pink)' : '';
         row.querySelector('[data-act="sel"]').style.background = fc.sel === i ? 'var(--pink-soft)' : '';
         row.querySelector('[data-act="sel"]').addEventListener('click', () => { fc.sel = i; syncFcPanel(); renderFC(); renderFcSlots(); });
         row.querySelector('input').addEventListener('change', async (e) => {
           const f = e.target.files[0]; if (!f) return;
-          setBusy(true, '사진 불러오는 중…');
+          setBusy(true, 'Loading photo…');
           try {
             const img = await loadImageFromFile(f);
             fc.slots[i] = { img, zoom: 1, ox: 0, oy: 0 };
             fc.sel = i; renderFC(); renderFcSlots(); syncFcPanel();
-          } catch { toast('사진을 불러오지 못했어요'); }
+          } catch { toast("Couldn't load that photo"); }
           setBusy(false);
         });
         wrap.appendChild(row);
@@ -1175,7 +1314,7 @@
       $('#view-fc').classList.toggle('hidden', m !== 'fc');
       $('#tab-wall').setAttribute('aria-selected', m === 'wall');
       $('#tab-fc').setAttribute('aria-selected', m === 'fc');
-      $('#export-label').textContent = m === 'wall' ? 'PNG로 저장' : '네컷 PNG로 저장';
+      $('#export-label').textContent = m === 'wall' ? 'Save as PNG' : 'Save 4-cut PNG';
       if (m === 'fc') renderFC();
     }
     $('#tab-wall').addEventListener('click', () => setMode('wall'));
@@ -1183,14 +1322,14 @@
     $('#btn-export').addEventListener('click', () => {
       if (mode === 'wall') {
         const keep = W.selectedId; W.selectedId = null; renderWall();
-        downloadCanvas(cv, '배경화면.png');
+        downloadCanvas(cv, 'wallpaper.png');
         W.selectedId = keep; renderWall();
-        toast(PRESETS[W.preset].label.split('·')[1].trim() + ' PNG로 저장했어요');
+        toast(PRESETS[W.preset].label.split('·')[1].trim() + ' saved as PNG');
       } else {
         const keep = fc.sel; fc.sel = -1; renderFC();
-        downloadCanvas(fcCv, '네컷.png');
+        downloadCanvas(fcCv, '4cut.png');
         fc.sel = keep; renderFC();
-        toast('네컷을 1600 × ' + FC.H + ' PNG로 저장했어요');
+        toast('Saved the 4-cut strip as a 1600 × ' + FC.H + ' saved as PNG');
       }
     });
 
