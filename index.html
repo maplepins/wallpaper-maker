@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>배경화면 꾸미기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Gaegu:wght@400;700&family=Black+Han+Sans&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
+    </style>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-soft: #fdf3f5;
+        --panel: #ffffff;
+        --ink: #26202a;
+        --ink-soft: #6f6577;
+        --line: #eadfe6;
+        --pink: #ff5d7e;
+        --pink-deep: #e83e63;
+        --pink-soft: #ffe3ea;
+        --mint: #17b890;
+        --mint-soft: #dcf5ec;
+        --butter: #f5a623;
+        --butter-soft: #fdeeda;
+        --sky: #3d9be9;
+        --sky-soft: #e0f0fd;
+        --danger: #e5484d;
+        --shadow: 0 10px 30px rgba(64, 30, 50, .12);
+        --radius: 16px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #17141a;
+          --bg-soft: #201b24;
+          --panel: #241e29;
+          --ink: #f5eef3;
+          --ink-soft: #b3a6b8;
+          --line: #3a3040;
+          --pink-soft: #46222f;
+          --mint-soft: #173c31;
+          --butter-soft: #423214;
+          --sky-soft: #17334a;
+          --shadow: 0 10px 30px rgba(0, 0, 0, .45);
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: "Gowun Dodum", "Apple SD Gothic Neo", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+      h1, h2, h3, .display { font-family: "Jua", "Gowun Dodum", sans-serif; font-weight: 400; }
+      button { font-family: inherit; cursor: pointer; }
+      input, select { font-family: inherit; }
+
+      /* ---------- top bar ---------- */
+      .topbar {
+        position: sticky; top: 0; z-index: 40;
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        padding: 10px 14px;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 2px dashed var(--line);
+      }
+      .brand { display: flex; align-items: center; gap: 9px; margin-right: auto; }
+      .brand .mark {
+        width: 36px; height: 36px; border-radius: 11px; flex: none;
+        background: var(--pink); color: #fff;
+        display: grid; place-items: center;
+        transform: rotate(-4deg);
+        box-shadow: 0 4px 0 var(--pink-deep);
+      }
+      .brand .mark svg { width: 21px; height: 21px; }
+      .brand .name { font-family: "Jua", sans-serif; font-size: 20px; line-height: 1; }
+      .brand .sub { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+      .tabs { display: flex; background: var(--bg-soft); border: 1.5px solid var(--line); border-radius: 999px; padding: 3px; gap: 3px; }
+      .tabs button {
+        border: 0; background: transparent; color: var(--ink-soft);
+        border-radius: 999px; padding: 6px 16px; font-size: 14.5px; min-height: 36px;
+        font-family: "Jua", sans-serif;
+      }
+      .tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+      .btn-export {
+        border: 0; border-radius: 999px; padding: 8px 18px; min-height: 40px;
+        background: var(--pink); color: #fff; font-family: "Jua", sans-serif; font-size: 15.5px;
+        box-shadow: 0 4px 0 var(--pink-deep);
+        display: inline-flex; align-items: center; gap: 7px;
+      }
+      .btn-export:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--pink-deep); }
+      .btn-export svg { width: 17px; height: 17px; }
+
+      /* ---------- layout ---------- */
+      .layout {
+        display: grid; grid-template-columns: minmax(0, 1fr) 330px;
+        gap: 18px; padding: 18px; max-width: 1560px; margin: 0 auto; align-items: start;
+      }
+      @media (max-width: 900px) {
+        .layout { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+      }
+      .stage-wrap { position: sticky; top: 76px; }
+      @media (max-width: 900px) { .stage-wrap { position: static; } }
+      .stage {
+        background:
+          repeating-conic-gradient(var(--bg-soft) 0% 25%, transparent 0% 50%) 0 0 / 26px 26px;
+        border: 1.5px solid var(--line); border-radius: 20px;
+        padding: clamp(10px, 2.5vw, 26px);
+        display: grid; place-items: center;
+      }
+      canvas.editor {
+        display: block; width: 100%; height: auto;
+        border-radius: 6px; box-shadow: var(--shadow);
+        touch-action: none; background: #fff;
+      }
+      canvas.editor.fc { width: min(430px, 100%); }
+      .stage-meta {
+        display: flex; justify-content: space-between; align-items: center; gap: 10px;
+        margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap;
+      }
+      .stage-meta .res { font-variant-numeric: tabular-nums; }
+      .hint { font-size: 12.5px; color: var(--ink-soft); }
+
+      /* ---------- panel ---------- */
+      .panel { display: flex; flex-direction: column; gap: 14px; }
+      .card {
+        background: var(--panel); border: 1.5px solid var(--line);
+        border-radius: var(--radius); padding: 14px;
+      }
+      .card h3 { margin: 0 0 10px; font-size: 16.5px; display: flex; align-items: center; gap: 7px; }
+      .card h3 .dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+      .card p.desc { margin: -4px 0 10px; font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .row + .row { margin-top: 8px; }
+      .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+      .seg button {
+        border: 1.5px solid var(--line); background: var(--bg); color: var(--ink);
+        border-radius: 11px; padding: 7px 12px; font-size: 13.5px; min-height: 38px;
+      }
+      .seg button[aria-pressed="true"] { border-color: var(--pink); background: var(--pink-soft); color: var(--pink-deep); font-weight: 700; }
+      @media (prefers-color-scheme: dark) { .seg button[aria-pressed="true"] { color: #ff9db1; } }
+      .btn {
+        border: 1.5px solid var(--line); background: var(--bg); color: var(--ink);
+        border-radius: 11px; padding: 7px 13px; font-size: 13.5px; min-height: 38px;
+        display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+      }
+      .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); font-family: "Jua", sans-serif; font-size: 14.5px; }
+      .btn.pink { background: var(--pink); border-color: var(--pink); color: #fff; font-family: "Jua", sans-serif; font-size: 14.5px; }
+      .btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
+      .btn:disabled { opacity: .45; cursor: not-allowed; }
+      .btn.block { width: 100%; }
+      .btn svg { width: 16px; height: 16px; flex: none; }
+      label.file-btn { display: inline-flex; }
+      input[type="file"] { display: none; }
+
+      .swatches { display: flex; gap: 7px; flex-wrap: wrap; }
+      .swatch {
+        width: 34px; height: 34px; border-radius: 10px; border: 2px solid var(--line);
+        padding: 0; position: relative; flex: none;
+      }
+      .swatch[aria-pressed="true"] { border-color: var(--ink); transform: scale(1.08); }
+      input[type="color"] {
+        width: 38px; height: 38px; border: 1.5px solid var(--line); border-radius: 10px;
+        background: var(--bg); padding: 3px; cursor: pointer;
+      }
+      .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 110px; }
+      .field label { font-size: 12px; color: var(--ink-soft); }
+      .field input[type="range"] { width: 100%; accent-color: var(--pink); min-height: 28px; }
+      .field input[type="text"], .field select {
+        border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink);
+        padding: 7px 10px; font-size: 14px; width: 100%;
+      }
+      .val { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+      .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+      .sticker-grid button {
+        border: 1.5px solid var(--line); background: var(--bg-soft); border-radius: 12px;
+        aspect-ratio: 1; display: grid; place-items: center; padding: 7px; min-height: 44px;
+      }
+      .sticker-grid button:active { transform: scale(.93); }
+      .sticker-grid svg { width: 100%; height: 100%; }
+
+      .layer-list { display: flex; flex-direction: column; gap: 6px; }
+      .layer-item {
+        display: flex; align-items: center; gap: 8px;
+        border: 1.5px solid var(--line); border-radius: 11px; padding: 5px 6px 5px 10px;
+        background: var(--bg); font-size: 13.5px;
+      }
+      .layer-item.sel { border-color: var(--pink); background: var(--pink-soft); }
+      .layer-item .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; background: none; border: 0; color: inherit; font-size: 13.5px; padding: 4px 0; }
+      .layer-item .mini {
+        width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line);
+        background: var(--bg-soft); color: var(--ink-soft); display: grid; place-items: center; padding: 0; flex: none;
+      }
+      .layer-item .mini svg { width: 15px; height: 15px; }
+      .empty-note { font-size: 13px; color: var(--ink-soft); text-align: center; padding: 10px 4px; line-height: 1.6; }
+
+      .toast {
+        position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 80px);
+        background: var(--ink); color: var(--bg); border-radius: 999px;
+        padding: 10px 18px; font-size: 14px; z-index: 90; transition: transform .25s ease;
+        box-shadow: var(--shadow); max-width: calc(100vw - 32px); text-align: center;
+      }
+      .toast.show { transform: translate(-50%, 0); }
+      .busy {
+        position: fixed; inset: 0; z-index: 80; display: none;
+        background: rgba(20, 12, 18, .45); place-items: center;
+      }
+      .busy.show { display: grid; }
+      .busy .box {
+        background: var(--panel); color: var(--ink); border-radius: 16px; padding: 18px 22px;
+        font-family: "Jua", sans-serif; font-size: 16px; display: flex; gap: 10px; align-items: center;
+      }
+      .spin { width: 20px; height: 20px; border-radius: 50%; border: 3px solid var(--pink-soft); border-top-color: var(--pink); animation: sp 0.8s linear infinite; }
+      @keyframes sp { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .spin { animation: none; } .toast { transition: none; } }
+      .hidden { display: none !important; }
+      .divider { border: 0; border-top: 1.5px dashed var(--line); margin: 12px 0; }
+      .kbd-note { font-size: 11.5px; color: var(--ink-soft); }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6" fill="currentColor" stroke="none"/><path d="m5 18 5-5 3 3 3-4 3 4"/></svg></span>
+        <span>
+          <span class="name">배경화면 꾸미기</span>
+          <div class="sub">내 사진으로 만드는 고화질 배경화면 · 네컷</div>
+        </span>
+      </div>
+      <nav class="tabs" role="tablist" aria-label="도구 선택">
+        <button role="tab" id="tab-wall" aria-selected="true">배경화면</button>
+        <button role="tab" id="tab-fc" aria-selected="false">네컷 만들기</button>
+      </nav>
+      <button class="btn-export" id="btn-export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></svg>
+        <span id="export-label">PNG로 저장</span>
+      </button>
+    </header>
+
+    <!-- ================= WALLPAPER ================= -->
+    <div id="view-wall">
+      <div class="layout">
+        <div class="stage-wrap">
+          <div class="stage">
+            <canvas class="editor" id="cv" width="3840" height="2160" aria-label="배경화면 편집 캔버스"></canvas>
+          </div>
+          <div class="stage-meta">
+            <span class="res" id="cv-meta">노트북 16:9 · 3840 × 2160 px · PNG 무손실</span>
+            <span class="hint">요소를 끌어서 옮기고, 모서리 점을 끌면 크기가 바뀌어요</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <section class="card">
+            <h3><span class="dot" style="background:var(--sky)"></span>캔버스 · 배경</h3>
+            <div class="seg" role="group" aria-label="화면 비율">
+              <button id="preset-laptop" aria-pressed="true">노트북 16:9 · 3840×2160</button>
+              <button id="preset-ipad" aria-pressed="false">아이패드 4:3 · 2752×2064</button>
+            </div>
+            <hr class="divider" />
+            <div class="row" role="group" aria-label="배경 종류">
+              <div class="seg">
+                <button data-bgtype="color" aria-pressed="true">단색</button>
+                <button data-bgtype="gradient" aria-pressed="false">그라데이션</button>
+                <button data-bgtype="pattern" aria-pressed="false">패턴</button>
+                <button data-bgtype="photo" aria-pressed="false">사진</button>
+              </div>
+            </div>
+            <div id="bg-color-ui">
+              <div class="row">
+                <div class="swatches" id="bg-swatches"></div>
+                <input type="color" id="bg-color-custom" value="#ffe3ea" aria-label="배경색 직접 선택" />
+              </div>
+            </div>
+            <div id="bg-gradient-ui" class="hidden">
+              <div class="row"><div class="swatches" id="grad-swatches"></div></div>
+            </div>
+            <div id="bg-pattern-ui" class="hidden">
+              <div class="row">
+                <div class="seg" id="pattern-seg">
+                  <button data-pattern="dots" aria-pressed="true">도트</button>
+                  <button data-pattern="grid" aria-pressed="false">격자</button>
+                  <button data-pattern="check" aria-pressed="false">체크</button>
+                  <button data-pattern="stars" aria-pressed="false">별</button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="swatches" id="pattern-swatches"></div>
+                <input type="color" id="pattern-color-custom" value="#fff0f3" aria-label="패턴 배경색 직접 선택" />
+              </div>
+            </div>
+            <div id="bg-photo-ui" class="hidden">
+              <p class="desc">배경으로 쓸 사진을 고르면 캔버스에 꽉 차게 들어가요. 원본 해상도 그대로 사용해요.</p>
+              <label class="btn primary block" for="bg-photo-input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5-5 3 3 3-4 5 6"/></svg>
+                배경 사진 고르기
+              </label>
+              <input type="file" id="bg-photo-input" accept="image/*" />
+            </div>
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--pink)"></span>내 사진 넣기</h3>
+            <p class="desc">사진을 올리면 요소로 추가돼요. 올린 사진은 이 기기 안에서만 처리되고, 원본 해상도를 그대로 유지해요. 사진을 선택하면 아래에서 배경을 지워 스티커로도 만들 수 있어요.</p>
+            <label class="btn pink block" for="photo-input">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              사진 추가하기
+            </label>
+            <input type="file" id="photo-input" accept="image/*" multiple />
+          </section>
+
+          <section class="card" id="sticker-maker">
+            <h3><span class="dot" style="background:var(--mint)"></span>스티커로 만들기</h3>
+            <p class="desc" id="sm-note">아직 선택한 사진이 없어요. 사진을 추가한 뒤 캔버스에서 그 사진을 누르면, 여기서 배경을 지워 스티커로 만들 수 있어요.</p>
+            <p class="desc">선택한 사진의 배경을 지워 스티커로 바꿔요. 사진 가장자리의 배경색을 따라 지우니까, 배경이 단색에 가까울수록 깔끔하게 잘려요.</p>
+            <div class="row">
+              <div class="field">
+                <label for="tol-range">배경 지우기 강도 <span class="val" id="tol-val">48</span></label>
+                <input type="range" id="tol-range" min="8" max="120" value="48" />
+              </div>
+            </div>
+            <div class="row">
+              <button class="btn primary" id="btn-cutout" style="flex:1">배경 지우기</button>
+              <button class="btn" id="btn-uncut" disabled>원본으로</button>
+            </div>
+            <hr class="divider" />
+            <div class="row">
+              <div class="field">
+                <label for="border-range">흰 테두리 두께 <span class="val" id="border-val">0</span></label>
+                <input type="range" id="border-range" min="0" max="60" value="0" />
+              </div>
+            </div>
+            <p class="desc" style="margin-top:8px">테두리를 주면 다꾸 스티커처럼 보여요. 강아지·최애 사진에 딱이에요.</p>
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--butter)"></span>스티커</h3>
+            <p class="desc">누르면 캔버스 가운데에 붙어요. 색은 아래에서 바꿀 수 있어요.</p>
+            <div class="sticker-grid" id="sticker-grid"></div>
+            <div class="row" style="margin-top:10px">
+              <div class="swatches" id="sticker-swatches"></div>
+              <input type="color" id="sticker-color-custom" value="#ff5d7e" aria-label="스티커 색 직접 선택" />
+            </div>
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--sky)"></span>글자 넣기</h3>
+            <div class="row">
+              <div class="field">
+                <label for="text-input">내용</label>
+                <input type="text" id="text-input" placeholder="예: 우리 강아지 최고" maxlength="40" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="text-font">글꼴</label>
+                <select id="text-font">
+                  <option value="Jua">주아체 (둥글둥글)</option>
+                  <option value="Gaegu">개구체 (손글씨)</option>
+                  <option value="Black Han Sans">블랙한스 (굵게)</option>
+                  <option value="Gowun Dodum">고운돋움 (깔끔)</option>
+                </select>
+              </div>
+              <div class="field" style="flex:0 0 auto; min-width:0">
+                <label>색</label>
+                <input type="color" id="text-color" value="#26202a" aria-label="글자 색" />
+              </div>
+            </div>
+            <div class="row"><button class="btn primary block" id="btn-add-text">글자 추가</button></div>
+          </section>
+
+          <section class="card hidden" id="sel-card">
+            <h3><span class="dot" style="background:var(--pink)"></span>선택한 요소</h3>
+            <div class="row">
+              <div class="field">
+                <label for="sel-scale">크기 <span class="val" id="sel-scale-val"></span></label>
+                <input type="range" id="sel-scale" min="5" max="400" value="100" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="sel-rot">회전 <span class="val" id="sel-rot-val"></span></label>
+                <input type="range" id="sel-rot" min="-180" max="180" value="0" />
+              </div>
+            </div>
+            <div class="row" id="sel-opacity-row">
+              <div class="field">
+                <label for="sel-opacity">투명도 <span class="val" id="sel-opacity-val"></span></label>
+                <input type="range" id="sel-opacity" min="10" max="100" value="100" />
+              </div>
+            </div>
+            <div class="row">
+              <button class="btn" id="btn-dup" style="flex:1">복사</button>
+              <button class="btn" id="btn-flip" style="flex:1">좌우 반전</button>
+              <button class="btn danger" id="btn-del" style="flex:1">삭제</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--mint)"></span>올라간 요소 <span class="val" id="layer-count"></span></h3>
+            <div class="layer-list" id="layer-list"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= FOUR-CUT ================= -->
+    <div id="view-fc" class="hidden">
+      <div class="layout">
+        <div class="stage-wrap">
+          <div class="stage">
+            <canvas class="editor fc" id="fc-cv" width="1600" height="4868" aria-label="네컷 편집 캔버스"></canvas>
+          </div>
+          <div class="stage-meta">
+            <span class="res">네컷 스트립 · 1600 × 4868 px · PNG 무손실</span>
+            <span class="hint">칸을 눌러 사진을 고르고, 끌어서 위치를 맞추세요</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <section class="card">
+            <h3><span class="dot" style="background:var(--pink)"></span>사진 4장</h3>
+            <p class="desc">칸마다 사진을 넣어요. 선택한 칸의 사진은 캔버스에서 끌어서 위치를, 아래 슬라이더로 크기를 맞출 수 있어요. 원본 해상도 그대로 들어가요.</p>
+            <div id="fc-slots"></div>
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--butter)"></span>선택한 칸 편집</h3>
+            <div class="row">
+              <div class="field">
+                <label for="fc-zoom">사진 크기 <span class="val" id="fc-zoom-val">100%</span></label>
+                <input type="range" id="fc-zoom" min="100" max="350" value="100" />
+              </div>
+            </div>
+            <div class="row">
+              <button class="btn" id="fc-center" style="flex:1">가운데로 맞추기</button>
+              <button class="btn danger" id="fc-remove" style="flex:1">사진 빼기</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--sky)"></span>프레임 꾸미기</h3>
+            <div class="row">
+              <div class="swatches" id="fc-frame-swatches"></div>
+              <input type="color" id="fc-frame-custom" value="#ffffff" aria-label="프레임 색 직접 선택" />
+            </div>
+            <hr class="divider" />
+            <div class="row">
+              <div class="field">
+                <label for="fc-caption">아래 문구</label>
+                <input type="text" id="fc-caption" placeholder="예: 2026.11.13 우리의 하루" maxlength="30" />
+              </div>
+              <div class="field" style="flex:0 0 auto; min-width:0">
+                <label>문구 색</label>
+                <input type="color" id="fc-caption-color" value="#26202a" aria-label="문구 색" />
+              </div>
+            </div>
+            <p class="desc" style="margin-top:8px">프레임 색에 따라 문구 색도 어울리게 골라보세요.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="busy" id="busy"><div class="box"><span class="spin"></span><span id="busy-msg">처리 중…</span></div></div>
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+    'use strict';
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => Array.from(document.querySelectorAll(s));
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    let toastTimer = null;
+    function toast(msg) {
+      const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+    function setBusy(on, msg) {
+      $('#busy').classList.toggle('show', on);
+      if (msg) $('#busy-msg').textContent = msg;
+    }
+    function loadImageFromFile(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+    function downloadCanvas(canvas, name) {
+      canvas.toBlob((blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      }, 'image/png');
+    }
+    function luminance(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+      return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    }
+
+    /* ================= sticker shapes (drawn as vectors = always crisp) ================= */
+    function heartPath(c) { c.beginPath(); c.moveTo(0, 34); c.bezierCurveTo(-52, 2, -40, -38, -16, -38); c.bezierCurveTo(-5, -38, 0, -31, 0, -24); c.bezierCurveTo(0, -31, 5, -38, 16, -38); c.bezierCurveTo(40, -38, 52, 2, 0, 34); c.closePath(); }
+    function starPath(c) { c.beginPath(); for (let i = 0; i < 10; i++) { const r = i % 2 ? 19 : 44, a = -Math.PI / 2 + i * Math.PI / 5; const x = Math.cos(a) * r, y = Math.sin(a) * r; i ? c.lineTo(x, y) : c.moveTo(x, y); } c.closePath(); }
+    function sparklePath(c) { c.beginPath(); c.moveTo(0, -46); c.quadraticCurveTo(6, -8, 46, 0); c.quadraticCurveTo(6, 8, 0, 46); c.quadraticCurveTo(-6, 8, -46, 0); c.quadraticCurveTo(-6, -8, 0, -46); c.closePath(); }
+    function flowerPath(c) { c.beginPath(); for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * (Math.PI * 2 / 5); c.moveTo(0, 0); c.arc(Math.cos(a) * 24, Math.sin(a) * 24, 17, 0, Math.PI * 2); } }
+    function cloudPath(c) { c.beginPath(); c.arc(-22, 8, 17, Math.PI * 0.5, Math.PI * 1.5); c.arc(-4, -6, 21, Math.PI, Math.PI * 1.95); c.arc(20, 4, 16, Math.PI * 1.4, Math.PI * 0.5); c.closePath(); }
+    function notePath(c) { c.beginPath(); c.ellipse(-14, 26, 12, 9, -0.35, 0, Math.PI * 2); c.moveTo(24, 20); c.ellipse(24, 20, 12, 9, -0.35, 0, Math.PI * 2); c.moveTo(-3, 24); c.lineTo(-3, -30); c.lineTo(35, -36); c.lineTo(35, 18); c.lineTo(27, 18); c.lineTo(27, -27); c.lineTo(5, -22); c.lineTo(5, 26); c.closePath(); }
+    function moonPath(c) { c.beginPath(); c.arc(0, 0, 40, Math.PI * 0.32, Math.PI * 1.68); c.arc(17, -8, 31, Math.PI * 1.5, Math.PI * 0.45, true); c.closePath(); }
+    function bowPath(c) { c.beginPath(); c.moveTo(0, 0); c.bezierCurveTo(-46, -34, -52, 22, -6, 10); c.bezierCurveTo(-50, 30, -44, -26, 0, 0); c.moveTo(0, 0); c.bezierCurveTo(46, -34, 52, 22, 6, 10); c.bezierCurveTo(50, 30, 44, -26, 0, 0); c.closePath(); c.moveTo(-8, -9); c.arc(0, 0, 10, 0, Math.PI * 2); }
+    function smilePath(c) { c.beginPath(); c.arc(0, 0, 42, 0, Math.PI * 2); c.moveTo(-16, -12); c.arc(-16, -12, 4.5, 0, Math.PI * 2); c.moveTo(16, -12); c.arc(16, -12, 4.5, 0, Math.PI * 2); c.moveTo(20, 10); c.arc(0, 8, 21, Math.PI * 0.15, Math.PI * 0.85); }
+    function bonePath(c) { c.save(); c.rotate(Math.PI / 4); c.beginPath(); c.moveTo(-26, -9); c.lineTo(26, -9); c.lineTo(26, 9); c.lineTo(-26, 9); c.closePath(); c.moveTo(-15, -9); c.arc(-26, -9, 11, 0, Math.PI * 2); c.moveTo(-15, 9); c.arc(-26, 9, 11, 0, Math.PI * 2); c.moveTo(37, -9); c.arc(26, -9, 11, 0, Math.PI * 2); c.moveTo(37, 9); c.arc(26, 9, 11, 0, Math.PI * 2); c.restore(); }
+    function tapeDraw(c, w, h, color) {
+      c.save();
+      c.fillStyle = color; c.globalAlpha *= 0.82;
+      const tw = w, th = h, jag = th * 0.16;
+      c.beginPath();
+      c.moveTo(-tw / 2, -th / 2); c.lineTo(-tw / 2 + jag, -th / 2 + jag); c.lineTo(-tw / 2, -th / 2 + jag * 2);
+      c.lineTo(-tw / 2 + jag, 0); c.lineTo(-tw / 2, th / 2 - jag * 2); c.lineTo(-tw / 2 + jag, th / 2 - jag); c.lineTo(-tw / 2, th / 2);
+      c.lineTo(tw / 2, th / 2); c.lineTo(tw / 2 - jag, th / 2 - jag); c.lineTo(tw / 2, th / 2 - jag * 2);
+      c.lineTo(tw / 2 - jag, 0); c.lineTo(tw / 2, -th / 2 + jag * 2); c.lineTo(tw / 2 - jag, -th / 2 + jag); c.lineTo(tw / 2, -th / 2);
+      c.closePath(); c.fill(); c.restore();
+    }
+    const SHAPES = {
+      heart:  { label: '하트', path: heartPath },
+      star:   { label: '별', path: starPath },
+      sparkle:{ label: '반짝이', path: sparklePath },
+      flower: { label: '꽃', path: flowerPath },
+      cloud:  { label: '구름', path: cloudPath },
+      note:   { label: '음표', path: notePath },
+      moon:   { label: '달', path: moonPath },
+      bow:    { label: '리본', path: bowPath },
+      smile:  { label: '스마일', path: smilePath, stroke: true },
+      bone:   { label: '뼈다귀', path: bonePath },
+      tape:   { label: '테이프', path: null },
+    };
+    const SHAPE_SVG = {
+      heart: '<path d="M50 84C14 56 6 34 22 20c10-9 24-6 28 4 4-10 18-13 28-4 16 14 8 36-28 64z"/>',
+      star: '<path d="M50 6l12 27 29 3-21 20 6 28-26-15-26 15 6-28L9 36l29-3z"/>',
+      sparkle: '<path d="M50 4c3 24 10 33 42 46-32 13-39 22-42 46-3-24-10-33-42-46C40 37 47 28 50 4z"/>',
+      flower: '<path d="M50 14a13 13 0 0113 13 13 13 0 0117 12 13 13 0 01-8 17 13 13 0 01-13 16 13 13 0 01-18 0A13 13 0 0128 56a13 13 0 018-17 13 13 0 0114-25z"/><circle cx="50" cy="47" r="8" fill="#fff" opacity=".65"/>',
+      cloud: '<path d="M28 76a16 16 0 01-3-31 24 24 0 0144-6 17 17 0 0110 37z"/>',
+      note: '<path d="M38 66V24l40-7v42a12 9 0 11-6-8V27l-26 5v34a12 9 0 11-8-8z"/>',
+      moon: '<path d="M66 8a38 38 0 1026 52A42 42 0 0166 8z"/>',
+      bow: '<path d="M50 50C20 22 6 34 12 50 6 66 20 78 50 50zm0 0c30-28 44-16 38 0 6 16-8 28-38 0z"/><circle cx="50" cy="50" r="9"/>',
+      smile: '<circle cx="50" cy="50" r="40" fill="none" stroke-width="7"/><circle cx="36" cy="42" r="5"/><circle cx="64" cy="42" r="5"/><path d="M32 62a20 20 0 0036 0" fill="none" stroke-width="7" stroke-linecap="round"/>',
+      bone: '<g transform="rotate(45 50 50)"><rect x="26" y="41" width="48" height="18" rx="9"/><circle cx="26" cy="41" r="11"/><circle cx="26" cy="59" r="11"/><circle cx="74" cy="41" r="11"/><circle cx="74" cy="59" r="11"/></g>',
+      tape: '<rect x="8" y="34" width="84" height="32" rx="3" opacity=".85"/>',
+    };
+
+    /* ================= WALLPAPER state ================= */
+    const PRESETS = {
+      laptop: { w: 3840, h: 2160, label: '노트북 16:9 · 3840 × 2160 px · PNG 무손실' },
+      ipad:   { w: 2752, h: 2064, label: '아이패드 4:3 · 2752 × 2064 px · PNG 무손실' },
+    };
+    const cv = $('#cv'), ctx = cv.getContext('2d');
+    const W = {
+      preset: 'laptop',
+      bg: { type: 'color', color: '#ffe3ea', grad: 0, pattern: 'dots', patternColor: '#fff0f3', img: null },
+      layers: [],       // {id, kind:'photo'|'sticker'|'text', name, x,y, baseW,baseH, scale, rot, opacity, flip, ...}
+      selectedId: null,
+      stickerColor: '#ff5d7e',
+    };
+    let uid = 1;
+    const GRADIENTS = [
+      ['#ffd9e3', '#fff3c9'], ['#cdeffd', '#e6e0ff'], ['#d8f5e3', '#fdf6d8'],
+      ['#ffe0c7', '#ffc7d9'], ['#dbeafe', '#fce7f3'], ['#2b2440', '#5b4a8a'],
+      ['#101418', '#274156'], ['#3a2b20', '#8a5a3b'],
+    ];
+    const BG_COLORS = ['#ffe3ea', '#fff3c9', '#dcf5ec', '#e0f0fd', '#f3e8fd', '#ffffff', '#26202a', '#101418'];
+    const STICKER_COLORS = ['#ff5d7e', '#f5a623', '#17b890', '#3d9be9', '#9b6dd6', '#ffffff', '#26202a'];
+
+    function sel() { return W.layers.find(l => l.id === W.selectedId) || null; }
+    function layerDims(l) {
+      const s = l.scale;
+      if (l.kind === 'photo') return { w: l.img.width * s, h: l.img.height * s };
+      if (l.kind === 'sticker') return l.shape === 'tape' ? { w: 520 * s, h: 170 * s } : { w: 300 * s, h: 300 * s };
+      return { w: l.w * s, h: l.h * s };
+    }
+
+    function makePatternCanvas(kind, base, accent) {
+      const S = 340, c = document.createElement('canvas'); c.width = S; c.height = S;
+      const g = c.getContext('2d');
+      g.fillStyle = base; g.fillRect(0, 0, S, S);
+      g.fillStyle = accent; g.strokeStyle = accent;
+      if (kind === 'dots') {
+        g.beginPath();
+        for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
+          g.moveTo(42 + x * 170 + (y ? 85 : 0), 42 + y * 170); g.arc(42 + x * 170 + (y ? 85 : 0), 42 + y * 170, 13, 0, Math.PI * 2);
+        }
+        g.fill();
+      } else if (kind === 'grid') {
+        g.lineWidth = 4; g.beginPath();
+        g.moveTo(0, 2); g.lineTo(S, 2); g.moveTo(2, 0); g.lineTo(2, S); g.stroke();
+      } else if (kind === 'check') {
+        g.globalAlpha = 0.5; g.fillRect(0, 0, S / 2, S / 2); g.fillRect(S / 2, S / 2, S / 2, S / 2); g.globalAlpha = 1;
+      } else if (kind === 'stars') {
+        g.save(); g.translate(85, 85); g.scale(0.85, 0.85); starPath(g); g.fill();
+        g.translate(200, 200); g.scale(0.7, 0.7); starPath(g); g.fill(); g.restore();
+      }
+      return c;
+    }
+    let patternCache = null;
+    function drawBackground() {
+      const { w, h } = PRESETS[W.preset], b = W.bg;
+      if (b.type === 'color') { ctx.fillStyle = b.color; ctx.fillRect(0, 0, w, h); }
+      else if (b.type === 'gradient') {
+        const [c1, c2] = GRADIENTS[b.grad];
+        const gr = ctx.createLinearGradient(0, 0, w * 0.25, h);
+        gr.addColorStop(0, c1); gr.addColorStop(1, c2);
+        ctx.fillStyle = gr; ctx.fillRect(0, 0, w, h);
+      } else if (b.type === 'pattern') {
+        const key = b.pattern + '|' + b.patternColor + '|' + b.color;
+        if (!patternCache || patternCache.key !== key) {
+          const accent = luminance(b.patternColor) > 0.5 ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.16)';
+          patternCache = { key, pat: ctx.createPattern(makePatternCanvas(b.pattern, b.patternColor, accent), 'repeat') };
+        }
+        ctx.fillStyle = patternCache.pat; ctx.fillRect(0, 0, w, h);
+      } else if (b.type === 'photo' && b.img) {
+        const img = b.img, s = Math.max(w / img.width, h / img.height);
+        const dw = img.width * s, dh = img.height * s;
+        ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      } else { ctx.fillStyle = b.color; ctx.fillRect(0, 0, w, h); }
+    }
+    function drawStickerShape(g, l) {
+      const d = layerDims(l);
+      if (l.shape === 'tape') { tapeDraw(g, d.w, d.h, l.color); return; }
+      const k = d.w / 100; // shapes are authored in a 100-unit box
+      g.save();
+      g.scale(k, k);
+      if (l.shape === 'flower') {
+        g.fillStyle = l.color; flowerPath(g); g.fill();
+        g.fillStyle = 'rgba(255,255,255,0.8)'; g.beginPath(); g.arc(0, 0, 13, 0, Math.PI * 2); g.fill();
+      } else {
+        const def = SHAPES[l.shape];
+        def.path(g);
+        if (def.stroke) { g.strokeStyle = l.color; g.lineWidth = 7; g.lineCap = 'round'; g.stroke(); }
+        else { g.fillStyle = l.color; g.fill(); }
+      }
+      g.restore();
+    }
+    function drawTextLayer(g, l) {
+      g.font = `${l.fontSize}px "${l.font}", sans-serif`;
+      g.fillStyle = l.color; g.textAlign = 'center'; g.textBaseline = 'middle';
+      if (l.outline) { g.lineWidth = l.fontSize * 0.18; g.strokeStyle = l.outline; g.lineJoin = 'round'; g.strokeText(l.text, 0, 0); }
+      g.fillText(l.text, 0, 0);
+    }
+    function renderWall() {
+      const { w, h } = PRESETS[W.preset];
+      ctx.clearRect(0, 0, w, h);
+      drawBackground();
+      for (const l of W.layers) {
+        const d = layerDims(l);
+        ctx.save();
+        ctx.translate(l.x, l.y); ctx.rotate(l.rot * Math.PI / 180);
+        if (l.flip) ctx.scale(-1, 1);
+        ctx.globalAlpha = l.opacity;
+        if (l.kind === 'photo') ctx.drawImage(l.display(), -d.w / 2, -d.h / 2, d.w, d.h);
+        else if (l.kind === 'sticker') drawStickerShape(ctx, l);
+        else if (l.kind === 'text') { ctx.scale(l.scale, l.scale); drawTextLayer(ctx, l); }
+        ctx.restore();
+      }
+      const s = sel();
+      if (s) {
+        const d = layerDims(s);
+        ctx.save();
+        ctx.translate(s.x, s.y); ctx.rotate(s.rot * Math.PI / 180);
+        ctx.strokeStyle = '#ff5d7e'; ctx.lineWidth = Math.max(4, w * 0.0016);
+        ctx.setLineDash([w * 0.006, w * 0.004]);
+        ctx.strokeRect(-d.w / 2, -d.h / 2, d.w, d.h);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ff5d7e';
+        ctx.beginPath(); ctx.arc(d.w / 2, d.h / 2, Math.max(16, w * 0.007), 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(3, w * 0.0012); ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    /* ================= wallpaper interactions ================= */
+    function toCanvasCoords(e, canvas) {
+      const r = canvas.getBoundingClientRect();
+      return { x: (e.clientX - r.left) * canvas.width / r.width, y: (e.clientY - r.top) * canvas.height / r.height };
+    }
+    function hitLayer(l, px, py) {
+      const dx = px - l.x, dy = py - l.y;
+      const a = -l.rot * Math.PI / 180;
+      const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+      const d = layerDims(l);
+      return Math.abs(lx) <= d.w / 2 && Math.abs(ly) <= d.h / 2 ? { lx, ly } : null;
+    }
+    function nearHandle(l, px, py) {
+      const dx = px - l.x, dy = py - l.y;
+      const a = -l.rot * Math.PI / 180;
+      const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+      const d = layerDims(l);
+      const tol = Math.max(60, PRESETS[W.preset].w * 0.016);
+      return Math.abs(lx - d.w / 2) < tol && Math.abs(ly - d.h / 2) < tol;
+    }
+    let drag = null;
+    cv.addEventListener('pointerdown', (e) => {
+      const p = toCanvasCoords(e, cv);
+      const s = sel();
+      if (s && nearHandle(s, p.x, p.y)) {
+        const d = layerDims(s);
+        drag = { mode: 'scale', id: s.id, startDist: Math.max(20, Math.hypot(p.x - s.x, p.y - s.y)), startScale: s.scale, w0: d.w, h0: d.h };
+        cv.setPointerCapture(e.pointerId); return;
+      }
+      for (let i = W.layers.length - 1; i >= 0; i--) {
+        if (hitLayer(W.layers[i], p.x, p.y)) {
+          selectLayer(W.layers[i].id);
+          drag = { mode: 'move', id: W.layers[i].id, dx: p.x - W.layers[i].x, dy: p.y - W.layers[i].y };
+          cv.setPointerCapture(e.pointerId); return;
+        }
+      }
+      selectLayer(null);
+    });
+    cv.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const p = toCanvasCoords(e, cv);
+      const l = W.layers.find(x => x.id === drag.id); if (!l) return;
+      if (drag.mode === 'move') { l.x = p.x - drag.dx; l.y = p.y - drag.dy; }
+      else {
+        const dist = Math.max(20, Math.hypot(p.x - l.x, p.y - l.y));
+        l.scale = clamp(drag.startScale * dist / drag.startDist, 0.02, 8);
+        syncSelPanel();
+      }
+      renderWall();
+    });
+    ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, () => { drag = null; }));
+
+    /* ================= selection + layer panel ================= */
+    function selectLayer(id) {
+      W.selectedId = id;
+      renderWall(); renderLayerList(); syncSelPanel();
+      const s = sel();
+      const isPhoto = !!(s && s.kind === 'photo');
+      $('#sm-note').classList.toggle('hidden', isPhoto);
+      $('#btn-cutout').disabled = !isPhoto;
+      $('#tol-range').disabled = !isPhoto;
+      $('#border-range').disabled = !isPhoto;
+      if (isPhoto) {
+        $('#tol-range').value = s.tol;
+        $('#tol-val').textContent = s.tol;
+        $('#border-range').value = s.borderPx;
+        $('#border-val').textContent = s.borderPx;
+        $('#btn-uncut').disabled = !s.cut;
+      } else {
+        $('#btn-uncut').disabled = true;
+      }
+    }
+    function syncSelPanel() {
+      const s = sel();
+      $('#sel-card').classList.toggle('hidden', !s);
+      if (!s) return;
+      $('#sel-scale').value = Math.round(s.scale * 100);
+      $('#sel-scale-val').textContent = Math.round(s.scale * 100) + '%';
+      $('#sel-rot').value = Math.round(s.rot);
+      $('#sel-rot-val').textContent = Math.round(s.rot) + '°';
+      $('#sel-opacity').value = Math.round(s.opacity * 100);
+      $('#sel-opacity-val').textContent = Math.round(s.opacity * 100) + '%';
+    }
+    function renderLayerList() {
+      const list = $('#layer-list'); list.innerHTML = '';
+      $('#layer-count').textContent = W.layers.length ? W.layers.length + '개' : '';
+      if (!W.layers.length) {
+        list.innerHTML = '<div class="empty-note">아직 아무것도 없어요.<br>사진을 올리거나 스티커·글자를 붙여보세요.</div>';
+        return;
+      }
+      [...W.layers].reverse().forEach((l) => {
+        const idx = W.layers.indexOf(l);
+        const item = document.createElement('div');
+        item.className = 'layer-item' + (l.id === W.selectedId ? ' sel' : '');
+        item.innerHTML = `
+          <button class="nm" type="button"></button>
+          <button class="mini" type="button" data-act="up" aria-label="앞으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 15 6-6 6 6"/></svg></button>
+          <button class="mini" type="button" data-act="down" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>`;
+        item.querySelector('.nm').textContent = l.name;
+        item.querySelector('.nm').addEventListener('click', () => selectLayer(l.id));
+        item.querySelector('[data-act="up"]').addEventListener('click', () => {
+          if (idx < W.layers.length - 1) { [W.layers[idx], W.layers[idx + 1]] = [W.layers[idx + 1], W.layers[idx]]; renderWall(); renderLayerList(); }
+        });
+        item.querySelector('[data-act="down"]').addEventListener('click', () => {
+          if (idx > 0) { [W.layers[idx], W.layers[idx - 1]] = [W.layers[idx - 1], W.layers[idx]]; renderWall(); renderLayerList(); }
+        });
+        list.appendChild(item);
+      });
+    }
+    $('#sel-scale').addEventListener('input', (e) => { const s = sel(); if (s) { s.scale = e.target.value / 100; $('#sel-scale-val').textContent = e.target.value + '%'; renderWall(); } });
+    $('#sel-rot').addEventListener('input', (e) => { const s = sel(); if (s) { s.rot = +e.target.value; $('#sel-rot-val').textContent = e.target.value + '°'; renderWall(); } });
+    $('#sel-opacity').addEventListener('input', (e) => { const s = sel(); if (s) { s.opacity = e.target.value / 100; $('#sel-opacity-val').textContent = e.target.value + '%'; renderWall(); } });
+    $('#btn-del').addEventListener('click', () => {
+      const s = sel(); if (!s) return;
+      W.layers = W.layers.filter(l => l.id !== s.id);
+      selectLayer(null); toast('삭제했어요');
+    });
+    $('#btn-dup').addEventListener('click', () => {
+      const s = sel(); if (!s) return;
+      const { w } = PRESETS[W.preset];
+      const copy = { ...s, id: uid++, x: s.x + w * 0.03, y: s.y + w * 0.03, name: s.name + ' 복사' };
+      W.layers.push(copy); selectLayer(copy.id);
+    });
+    $('#btn-flip').addEventListener('click', () => { const s = sel(); if (s) { s.flip = !s.flip; renderWall(); } });
+
+    /* ================= presets & background controls ================= */
+    function setPreset(name) {
+      const old = PRESETS[W.preset], nw = PRESETS[name];
+      const fx = nw.w / old.w, fy = nw.h / old.h;
+      W.layers.forEach(l => { l.x *= fx; l.y *= fy; l.scale *= (fx + fy) / 2; });
+      W.preset = name;
+      cv.width = nw.w; cv.height = nw.h;
+      $('#cv-meta').textContent = nw.label;
+      $('#preset-laptop').setAttribute('aria-pressed', name === 'laptop');
+      $('#preset-ipad').setAttribute('aria-pressed', name === 'ipad');
+      renderWall();
+    }
+    $('#preset-laptop').addEventListener('click', () => setPreset('laptop'));
+    $('#preset-ipad').addEventListener('click', () => setPreset('ipad'));
+
+    function swatchRow(el, colors, current, onPick) {
+      el.innerHTML = '';
+      colors.forEach(c => {
+        const b = document.createElement('button');
+        b.className = 'swatch'; b.style.background = c; b.type = 'button';
+        b.setAttribute('aria-pressed', c === current); b.setAttribute('aria-label', '색상 ' + c);
+        b.addEventListener('click', () => onPick(c));
+        el.appendChild(b);
+      });
+    }
+    function refreshSwatches() {
+      swatchRow($('#bg-swatches'), BG_COLORS, W.bg.color, (c) => { W.bg.color = c; W.bg.type = 'color'; syncBgUI(); renderWall(); });
+      const gEl = $('#grad-swatches'); gEl.innerHTML = '';
+      GRADIENTS.forEach((g, i) => {
+        const b = document.createElement('button');
+        b.className = 'swatch'; b.type = 'button';
+        b.style.background = `linear-gradient(135deg, ${g[0]}, ${g[1]})`;
+        b.setAttribute('aria-pressed', W.bg.grad === i);
+        b.setAttribute('aria-label', '그라데이션 ' + (i + 1));
+        b.addEventListener('click', () => { W.bg.grad = i; W.bg.type = 'gradient'; syncBgUI(); renderWall(); });
+        gEl.appendChild(b);
+      });
+      swatchRow($('#pattern-swatches'), BG_COLORS, W.bg.patternColor, (c) => { W.bg.patternColor = c; renderWall(); });
+      swatchRow($('#sticker-swatches'), STICKER_COLORS, W.stickerColor, (c) => {
+        W.stickerColor = c; refreshSwatches();
+        const s = sel(); if (s && s.kind === 'sticker') { s.color = c; renderWall(); }
+      });
+    }
+    function syncBgUI() {
+      $$('#view-wall [data-bgtype]').forEach(b => b.setAttribute('aria-pressed', b.dataset.bgtype === W.bg.type));
+      $('#bg-color-ui').classList.toggle('hidden', W.bg.type !== 'color');
+      $('#bg-gradient-ui').classList.toggle('hidden', W.bg.type !== 'gradient');
+      $('#bg-pattern-ui').classList.toggle('hidden', W.bg.type !== 'pattern');
+      $('#bg-photo-ui').classList.toggle('hidden', W.bg.type !== 'photo');
+      refreshSwatches();
+    }
+    $$('#view-wall [data-bgtype]').forEach(b => b.addEventListener('click', () => {
+      W.bg.type = b.dataset.bgtype;
+      if (W.bg.type === 'photo' && !W.bg.img) { syncBgUI(); return; }
+      syncBgUI(); renderWall();
+    }));
+    $('#bg-color-custom').addEventListener('input', (e) => { W.bg.color = e.target.value; W.bg.type = 'color'; syncBgUI(); renderWall(); });
+    $('#pattern-color-custom').addEventListener('input', (e) => { W.bg.patternColor = e.target.value; renderWall(); });
+    $$('#pattern-seg button').forEach(b => b.addEventListener('click', () => {
+      W.bg.pattern = b.dataset.pattern;
+      $$('#pattern-seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      renderWall();
+    }));
+    $('#bg-photo-input').addEventListener('change', async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      setBusy(true, '배경 사진 불러오는 중…');
+      try { W.bg.img = await loadImageFromFile(f); W.bg.type = 'photo'; syncBgUI(); renderWall(); toast('배경 사진을 넣었어요'); }
+      catch { toast('사진을 불러오지 못했어요'); }
+      setBusy(false); e.target.value = '';
+    });
+
+    /* ================= add photos / stickers / text ================= */
+    $('#photo-input').addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []); if (!files.length) return;
+      setBusy(true, '사진 불러오는 중…');
+      const { w, h } = PRESETS[W.preset];
+      for (const f of files) {
+        try {
+          const img = await loadImageFromFile(f);
+          const fit = Math.min((w * 0.55) / img.width, (h * 0.75) / img.height, 1);
+          const layer = {
+            id: uid++, kind: 'photo', name: f.name.replace(/\.[^.]+$/, '') || '사진',
+            img, cut: null, displayCanvas: null, tol: 48, borderPx: 0,
+            x: w / 2 + (Math.random() - 0.5) * w * 0.08, y: h / 2 + (Math.random() - 0.5) * h * 0.08,
+            scale: fit || 0.3, rot: 0, opacity: 1, flip: false,
+          };
+          layer.display = function () { return this.displayCanvas || this.img; };
+          W.layers.push(layer);
+          selectLayer(layer.id);
+        } catch { /* skip unreadable file */ }
+      }
+      setBusy(false); e.target.value = '';
+      toast('사진을 추가했어요. 아래 "스티커로 만들기"에서 배경을 지울 수 있어요');
+    });
+
+    const grid = $('#sticker-grid');
+    Object.keys(SHAPES).forEach(key => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('aria-label', SHAPES[key].label + ' 스티커 추가');
+      b.innerHTML = `<svg viewBox="0 0 100 100" fill="currentColor" stroke="currentColor" style="color:var(--pink)">${SHAPE_SVG[key]}</svg>`;
+      b.addEventListener('click', () => {
+        const { w, h } = PRESETS[W.preset];
+        const layer = {
+          id: uid++, kind: 'sticker', shape: key, name: SHAPES[key].label + ' 스티커',
+          color: W.stickerColor, x: w / 2, y: h / 2,
+          scale: (w * 0.10) / 300, rot: 0, opacity: 1, flip: false,
+        };
+        W.layers.push(layer); selectLayer(layer.id);
+      });
+      grid.appendChild(b);
+    });
+    $('#sticker-color-custom').addEventListener('input', (e) => {
+      W.stickerColor = e.target.value; refreshSwatches();
+      const s = sel(); if (s && s.kind === 'sticker') { s.color = e.target.value; renderWall(); }
+    });
+
+    $('#btn-add-text').addEventListener('click', () => {
+      const text = $('#text-input').value.trim();
+      if (!text) { toast('글자 내용을 먼저 입력하세요'); return; }
+      const { w, h } = PRESETS[W.preset];
+      const font = $('#text-font').value;
+      const meas = document.createElement('canvas').getContext('2d');
+      const fontSize = w * 0.045;
+      meas.font = `${fontSize}px "${font}", sans-serif`;
+      const layer = {
+        id: uid++, kind: 'text', name: '글자: ' + text, text, font,
+        color: $('#text-color').value, outline: null,
+        fontSize, w: meas.measureText(text).width, h: fontSize * 1.25,
+        x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false,
+      };
+      W.layers.push(layer); selectLayer(layer.id);
+      $('#text-input').value = '';
+    });
+
+    /* ================= cutout (background removal) + sticker border ================= */
+    function floodRemove(img, tol) {
+      const w = img.width, h = img.height;
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, 0);
+      const imageData = g.getImageData(0, 0, w, h);
+      const d = imageData.data;
+      // reference background color = average of the four corners (small patches)
+      let sr = 0, sg = 0, sb = 0, n = 0;
+      const P = Math.max(2, Math.floor(Math.min(w, h) * 0.02));
+      const corners = [[0, 0], [w - P, 0], [0, h - P], [w - P, h - P]];
+      for (const [cx, cy] of corners) {
+        for (let y = cy; y < cy + P; y++) for (let x = cx; x < cx + P; x++) {
+          const i = (y * w + x) * 4; sr += d[i]; sg += d[i + 1]; sb += d[i + 2]; n++;
+        }
+      }
+      sr /= n; sg /= n; sb /= n;
+      const t2 = tol * tol * 3;
+      const isBg = (i) => {
+        const dr = d[i] - sr, dg = d[i + 1] - sg, db = d[i + 2] - sb;
+        return dr * dr + dg * dg + db * db <= t2;
+      };
+      const mask = new Uint8Array(w * h); // 1 = removed
+      const stack = [];
+      const push = (x, y) => { const p = y * w + x; if (!mask[p]) { mask[p] = 1; stack.push(p); } };
+      for (let x = 0; x < w; x++) { if (isBg(x * 4)) push(x, 0); if (isBg(((h - 1) * w + x) * 4)) push(x, h - 1); }
+      for (let y = 0; y < h; y++) { if (isBg((y * w) * 4)) push(0, y); if (isBg((y * w + w - 1) * 4)) push(w - 1, y); }
+      while (stack.length) {
+        const p = stack.pop(), x = p % w, y = (p / w) | 0;
+        if (x > 0 && !mask[p - 1] && isBg((p - 1) * 4)) { mask[p - 1] = 1; stack.push(p - 1); }
+        if (x < w - 1 && !mask[p + 1] && isBg((p + 1) * 4)) { mask[p + 1] = 1; stack.push(p + 1); }
+        if (y > 0 && !mask[p - w] && isBg((p - w) * 4)) { mask[p - w] = 1; stack.push(p - w); }
+        if (y < h - 1 && !mask[p + w] && isBg((p + w) * 4)) { mask[p + w] = 1; stack.push(p + w); }
+      }
+      for (let p = 0; p < w * h; p++) if (mask[p]) d[p * 4 + 3] = 0;
+      g.putImageData(imageData, 0, 0);
+      return c;
+    }
+    function borderedSticker(src, borderPx) {
+      if (!borderPx) return src;
+      const pad = borderPx;
+      const out = document.createElement('canvas');
+      out.width = src.width + pad * 2; out.height = src.height + pad * 2;
+      const g = out.getContext('2d');
+      const sil = document.createElement('canvas'); sil.width = src.width; sil.height = src.height;
+      const sg = sil.getContext('2d');
+      sg.drawImage(src, 0, 0);
+      sg.globalCompositeOperation = 'source-in';
+      sg.fillStyle = '#ffffff'; sg.fillRect(0, 0, sil.width, sil.height);
+      const steps = 28;
+      for (let i = 0; i < steps; i++) {
+        const a = (i / steps) * Math.PI * 2;
+        g.drawImage(sil, pad + Math.cos(a) * pad, pad + Math.sin(a) * pad);
+      }
+      for (let i = 0; i < steps; i++) {
+        const a = (i / steps) * Math.PI * 2;
+        g.drawImage(sil, pad + Math.cos(a) * pad * 0.55, pad + Math.sin(a) * pad * 0.55);
+      }
+      g.drawImage(sil, pad, pad);
+      g.drawImage(src, pad, pad);
+      return out;
+    }
+    function refreshPhotoDisplay(l) {
+      if (!l.cut) { l.displayCanvas = null; return; }
+      l.displayCanvas = borderedSticker(l.cut, l.borderPx);
+    }
+    $('#tol-range').addEventListener('input', (e) => { $('#tol-val').textContent = e.target.value; const s = sel(); if (s) s.tol = +e.target.value; });
+    $('#btn-cutout').addEventListener('click', () => {
+      const s = sel(); if (!s || s.kind !== 'photo') return;
+      setBusy(true, '배경 지우는 중… (원본 해상도 그대로 처리해요)');
+      setTimeout(() => {
+        try {
+          s.cut = floodRemove(s.img, s.tol);
+          refreshPhotoDisplay(s);
+          $('#btn-uncut').disabled = false;
+          renderWall();
+          toast('스티커로 잘랐어요. 가장자리가 아쉬우면 강도를 바꿔 다시 해보세요');
+        } catch (err) { toast('처리에 실패했어요. 다른 사진으로 시도해보세요'); }
+        setBusy(false);
+      }, 30);
+    });
+    $('#btn-uncut').addEventListener('click', () => {
+      const s = sel(); if (!s) return;
+      s.cut = null; s.displayCanvas = null;
+      $('#btn-uncut').disabled = true;
+      renderWall(); toast('원본 사진으로 되돌렸어요');
+    });
+    $('#border-range').addEventListener('input', (e) => {
+      $('#border-val').textContent = e.target.value;
+      const s = sel(); if (!s || s.kind !== 'photo') return;
+      s.borderPx = +e.target.value;
+      if (!s.cut && s.borderPx > 0) { toast('테두리는 배경을 지운 뒤에 붙어요. 먼저 "배경 지우기"를 눌러주세요'); return; }
+      refreshPhotoDisplay(s); renderWall();
+    });
+
+    /* ================= FOUR-CUT ================= */
+    const FC = { W: 1600, pad: 80, gap: 56, fw: 1440, fh: 1080, capH: 300 };
+    FC.H = FC.pad + FC.fh * 4 + FC.gap * 3 + FC.capH;
+    const fcCv = $('#fc-cv'), fcCtx = fcCv.getContext('2d');
+    fcCv.height = FC.H;
+    const fc = {
+      frame: '#ffffff',
+      caption: '', captionColor: '#26202a',
+      slots: [null, null, null, null], // {img, zoom, ox, oy}
+      sel: 0,
+    };
+    function slotRect(i) {
+      return { x: FC.pad, y: FC.pad + i * (FC.fh + FC.gap), w: FC.fw, h: FC.fh };
+    }
+    function drawSlotPhoto(i) {
+      const s = fc.slots[i], r = slotRect(i);
+      fcCtx.save();
+      fcCtx.beginPath(); fcCtx.rect(r.x, r.y, r.w, r.h); fcCtx.clip();
+      if (s && s.img) {
+        const img = s.img;
+        const base = Math.max(r.w / img.width, r.h / img.height);
+        const sc = base * s.zoom;
+        const dw = img.width * sc, dh = img.height * sc;
+        const px = clamp(r.x + r.w / 2 + s.ox - dw / 2, r.x + Math.min(0, r.w - dw), r.x + Math.max(0, r.w - dw));
+        const py = clamp(r.y + r.h / 2 + s.oy - dh / 2, r.y + Math.min(0, r.h - dh), r.y + Math.max(0, r.h - dh));
+        fcCtx.drawImage(img, px, py, dw, dh);
+      } else {
+        fcCtx.fillStyle = luminance(fc.frame) > 0.5 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.10)';
+        fcCtx.fillRect(r.x, r.y, r.w, r.h);
+        fcCtx.fillStyle = luminance(fc.frame) > 0.5 ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.55)';
+        fcCtx.font = `90px "Jua", sans-serif`;
+        fcCtx.textAlign = 'center'; fcCtx.textBaseline = 'middle';
+        fcCtx.fillText(String(i + 1), r.x + r.w / 2, r.y + r.h / 2);
+      }
+      fcCtx.restore();
+      if (i === fc.sel) {
+        fcCtx.save();
+        fcCtx.strokeStyle = '#ff5d7e'; fcCtx.lineWidth = 10;
+        fcCtx.setLineDash([28, 18]);
+        fcCtx.strokeRect(r.x - 5, r.y - 5, r.w + 10, r.h + 10);
+        fcCtx.restore();
+      }
+    }
+    function renderFC() {
+      fcCtx.fillStyle = fc.frame; fcCtx.fillRect(0, 0, FC.W, FC.H);
+      for (let i = 0; i < 4; i++) drawSlotPhoto(i);
+      const cap = fc.caption.trim();
+      if (cap) {
+        fcCtx.fillStyle = fc.captionColor;
+        fcCtx.font = `92px "Jua", sans-serif`;
+        fcCtx.textAlign = 'center'; fcCtx.textBaseline = 'middle';
+        fcCtx.fillText(cap, FC.W / 2, FC.pad + FC.fh * 4 + FC.gap * 3 + FC.capH / 2, FC.W - FC.pad * 2);
+      }
+    }
+    function renderFcSlots() {
+      const wrap = $('#fc-slots'); wrap.innerHTML = '';
+      fc.slots.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.className = 'row'; row.style.marginTop = i ? '8px' : '0';
+        row.innerHTML = `
+          <button class="btn" type="button" style="flex:0 0 74px" data-act="sel">${i + 1}번 칸</button>
+          <label class="btn ${s ? '' : 'pink'}" style="flex:1" for="fc-file-${i}">${s ? '사진 바꾸기' : '사진 넣기'}</label>
+          <input type="file" id="fc-file-${i}" accept="image/*" />`;
+        row.querySelector('[data-act="sel"]').style.borderColor = fc.sel === i ? 'var(--pink)' : '';
+        row.querySelector('[data-act="sel"]').style.background = fc.sel === i ? 'var(--pink-soft)' : '';
+        row.querySelector('[data-act="sel"]').addEventListener('click', () => { fc.sel = i; syncFcPanel(); renderFC(); renderFcSlots(); });
+        row.querySelector('input').addEventListener('change', async (e) => {
+          const f = e.target.files[0]; if (!f) return;
+          setBusy(true, '사진 불러오는 중…');
+          try {
+            const img = await loadImageFromFile(f);
+            fc.slots[i] = { img, zoom: 1, ox: 0, oy: 0 };
+            fc.sel = i; renderFC(); renderFcSlots(); syncFcPanel();
+          } catch { toast('사진을 불러오지 못했어요'); }
+          setBusy(false);
+        });
+        wrap.appendChild(row);
+      });
+    }
+    function syncFcPanel() {
+      const s = fc.slots[fc.sel];
+      $('#fc-zoom').value = s ? Math.round(s.zoom * 100) : 100;
+      $('#fc-zoom-val').textContent = (s ? Math.round(s.zoom * 100) : 100) + '%';
+      $('#fc-zoom').disabled = !s; $('#fc-remove').disabled = !s; $('#fc-center').disabled = !s;
+    }
+    $('#fc-zoom').addEventListener('input', (e) => {
+      const s = fc.slots[fc.sel]; if (!s) return;
+      s.zoom = e.target.value / 100; $('#fc-zoom-val').textContent = e.target.value + '%'; renderFC();
+    });
+    $('#fc-center').addEventListener('click', () => { const s = fc.slots[fc.sel]; if (s) { s.ox = 0; s.oy = 0; renderFC(); } });
+    $('#fc-remove').addEventListener('click', () => { fc.slots[fc.sel] = null; renderFC(); renderFcSlots(); syncFcPanel(); });
+    let fcDrag = null;
+    fcCv.addEventListener('pointerdown', (e) => {
+      const p = toCanvasCoords(e, fcCv);
+      for (let i = 0; i < 4; i++) {
+        const r = slotRect(i);
+        if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) {
+          fc.sel = i; syncFcPanel(); renderFcSlots(); renderFC();
+          const s = fc.slots[i];
+          if (s) { fcDrag = { sx: p.x, sy: p.y, ox: s.ox, oy: s.oy }; fcCv.setPointerCapture(e.pointerId); }
+          return;
+        }
+      }
+    });
+    fcCv.addEventListener('pointermove', (e) => {
+      if (!fcDrag) return;
+      const p = toCanvasCoords(e, fcCv);
+      const s = fc.slots[fc.sel]; if (!s) return;
+      s.ox = fcDrag.ox + (p.x - fcDrag.sx); s.oy = fcDrag.oy + (p.y - fcDrag.sy);
+      renderFC();
+    });
+    ['pointerup', 'pointercancel'].forEach(ev => fcCv.addEventListener(ev, () => { fcDrag = null; }));
+    const FC_FRAME_COLORS = ['#ffffff', '#26202a', '#ffe3ea', '#fff3c9', '#dcf5ec', '#e0f0fd', '#f3e8fd'];
+    function pickFrameColor(c) {
+      fc.frame = c;
+      fc.captionColor = luminance(c) > 0.5 ? '#26202a' : '#ffffff';
+      $('#fc-caption-color').value = fc.captionColor;
+      $('#fc-frame-custom').value = c;
+      swatchRow($('#fc-frame-swatches'), FC_FRAME_COLORS, fc.frame, pickFrameColor);
+      renderFC();
+    }
+    swatchRow($('#fc-frame-swatches'), FC_FRAME_COLORS, fc.frame, pickFrameColor);
+    $('#fc-frame-custom').addEventListener('input', (e) => { fc.frame = e.target.value; renderFC(); });
+    $('#fc-caption').addEventListener('input', (e) => { fc.caption = e.target.value; renderFC(); });
+    $('#fc-caption-color').addEventListener('input', (e) => { fc.captionColor = e.target.value; renderFC(); });
+
+    /* ================= tabs & export ================= */
+    let mode = 'wall';
+    function setMode(m) {
+      mode = m;
+      $('#view-wall').classList.toggle('hidden', m !== 'wall');
+      $('#view-fc').classList.toggle('hidden', m !== 'fc');
+      $('#tab-wall').setAttribute('aria-selected', m === 'wall');
+      $('#tab-fc').setAttribute('aria-selected', m === 'fc');
+      $('#export-label').textContent = m === 'wall' ? 'PNG로 저장' : '네컷 PNG로 저장';
+      if (m === 'fc') renderFC();
+    }
+    $('#tab-wall').addEventListener('click', () => setMode('wall'));
+    $('#tab-fc').addEventListener('click', () => setMode('fc'));
+    $('#btn-export').addEventListener('click', () => {
+      if (mode === 'wall') {
+        const keep = W.selectedId; W.selectedId = null; renderWall();
+        downloadCanvas(cv, '배경화면.png');
+        W.selectedId = keep; renderWall();
+        toast(PRESETS[W.preset].label.split('·')[1].trim() + ' PNG로 저장했어요');
+      } else {
+        const keep = fc.sel; fc.sel = -1; renderFC();
+        downloadCanvas(fcCv, '네컷.png');
+        fc.sel = keep; renderFC();
+        toast('네컷을 1600 × ' + FC.H + ' PNG로 저장했어요');
+      }
+    });
+
+    /* ================= init ================= */
+    syncBgUI();
+    selectLayer(null);
+    renderLayerList();
+    syncSelPanel();
+    renderWall();
+    renderFcSlots();
+    syncFcPanel();
+    renderFC();
+    </script>
+  </body>
+</html>
