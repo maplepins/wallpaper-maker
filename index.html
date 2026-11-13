@@ -95,6 +95,8 @@
       }
       .btn-export:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--pink-deep); }
       .btn-export svg { width: 17px; height: 17px; }
+      .btn-ghost { background: #fff; color: var(--pink-deep); border: 1.5px solid var(--line); box-shadow: 0 4px 0 var(--line); }
+      .btn-ghost:active { box-shadow: 0 1px 0 var(--line); }
 
       /* ---------- layout ---------- */
       .layout {
@@ -240,6 +242,14 @@
       <button class="btn-export" id="btn-export">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></svg>
         <span id="export-label">Save as PNG</span>
+      </button>
+      <button class="btn-export btn-ghost" id="btn-share-img" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4"/><path d="m15.4 6.5-6.8 4"/></svg>
+        <span>Share</span>
+      </button>
+      <button class="btn-export btn-ghost" id="btn-share-link" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+        <span>Design link</span>
       </button>
     </header>
 
@@ -712,6 +722,7 @@
       const s = l.scale;
       if (FRAME_DIMS[l.kind]) return { w: FRAME_DIMS[l.kind][0] * s, h: FRAME_DIMS[l.kind][1] * s };
       if (l.kind === 'film') return { w: 1150 * s, h: 400 * s };
+      if (l.kind === 'photoslot') return { w: l.bw * s, h: l.bh * s };
       if (l.kind === 'photo') return { w: l.img.width * s, h: l.img.height * s };
       if (l.kind === 'sticker') return l.shape === 'tape' ? { w: 520 * s, h: 170 * s } : l.shape === 'postit' ? { w: 340 * s, h: 340 * s } : { w: 300 * s, h: 300 * s };
       return { w: l.w * s, h: l.h * s };
@@ -1078,6 +1089,7 @@
         if (l.flip) ctx.scale(-1, 1);
         ctx.globalAlpha = l.opacity;
         if (l.kind === 'photo') ctx.drawImage(l.display(), -d.w / 2, -d.h / 2, d.w, d.h);
+        else if (l.kind === 'photoslot') drawPhotoSlot(ctx, l.img, -d.w / 2, -d.h / 2, d.w, d.h);
         else if (l.kind === 'sticker') drawStickerShape(ctx, l);
         else if (l.kind === 'film') drawFilmStrip(ctx, l);
         else if (FRAME_DIMS[l.kind]) drawFrameEl(ctx, l);
@@ -1219,7 +1231,7 @@
       s.pattern = b.dataset.tapepat; syncSelPanel(); renderWall();
     }));
     const EL_NAMES = { polaroid: 'Polaroid', ticket: 'Movie ticket', stamp: 'Stamp', window: 'Retro window', player: 'Music player', cassette: 'Cassette', receipt: 'Receipt', calendar: 'Calendar', dday: 'D-day' };
-    const EL_PHOTO = ['polaroid', 'ticket', 'stamp', 'window', 'player', 'cassette'];
+    const EL_PHOTO = ['polaroid', 'ticket', 'stamp', 'window', 'player', 'cassette', 'photoslot'];
     function addElement(kind) {
       const { w, h } = PRESETS[W.preset];
       const layer = { id: uid++, kind, name: EL_NAMES[kind] || kind, img: null, caption: '', text: '', date: '', x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
@@ -1676,6 +1688,103 @@
       }
     });
 
+
+    /* ================= share: image + design link ================= */
+    function b64EncodeUnicode(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = '';
+      const CH = 0x8000;
+      for (let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    function b64DecodeUnicode(s) {
+      const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+    function serializeDesign() {
+      return {
+        v: 1, preset: W.preset,
+        bg: { type: W.bg.type === 'photo' ? 'color' : W.bg.type, color: W.bg.color, grad: W.bg.grad, pattern: W.bg.pattern, patternColor: W.bg.patternColor },
+        effect: W.effect, stickerColor: W.stickerColor,
+        layers: W.layers.map(l => {
+          const b = { k: l.kind, x: Math.round(l.x), y: Math.round(l.y), s: Math.round(l.scale * 1000) / 1000, r: Math.round(l.rot * 10) / 10, o: l.opacity, f: l.flip ? 1 : 0 };
+          if (l.kind === 'photo') { b.k = 'photoslot'; b.bw = l.img.width; b.bh = l.img.height; }
+          else if (l.kind === 'sticker') { b.sh = l.shape; b.c = l.color; if (l.pattern && l.pattern !== 'solid') b.p = l.pattern; }
+          else if (l.kind === 'text') { b.t = l.text; b.fn = l.font; b.c = l.color; b.ol = l.outline || ''; b.fs = Math.round(l.fontSize); b.w = Math.round(l.w); b.h = Math.round(l.h); }
+          else if (l.kind === 'film') { /* photos are never shared */ }
+          else { if (l.caption) b.cp = l.caption; if (l.text) b.t = l.text; if (l.date) b.d = l.date; }
+          return b;
+        }),
+      };
+    }
+    function applyDesign(d) {
+      if (!d || !Array.isArray(d.layers)) return false;
+      const preset = PRESETS[d.preset] ? d.preset : 'laptop';
+      W.preset = preset;
+      cv.width = PRESETS[preset].w; cv.height = PRESETS[preset].h;
+      $('#cv-meta').textContent = PRESETS[preset].label;
+      $('#preset-laptop').setAttribute('aria-pressed', String(preset === 'laptop'));
+      $('#preset-ipad').setAttribute('aria-pressed', String(preset === 'ipad'));
+      const b = d.bg || {};
+      W.bg = { type: ['color', 'gradient', 'pattern'].indexOf(b.type) >= 0 ? b.type : 'color', color: b.color || '#ffe3ea', grad: b.grad || 0, pattern: b.pattern || 'dots', patternColor: b.patternColor || '#fff0f3', img: null };
+      W.effect = ['none', 'grain', 'sparkle', 'both'].indexOf(d.effect) >= 0 ? d.effect : 'none';
+      document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.effect === W.effect)));
+      if (d.stickerColor) W.stickerColor = d.stickerColor;
+      W.layers = d.layers.map(sv => {
+        const base = { id: uid++, x: +sv.x || 0, y: +sv.y || 0, scale: +sv.s || 1, rot: +sv.r || 0, opacity: sv.o == null ? 1 : sv.o, flip: !!sv.f };
+        if (sv.k === 'photoslot') return Object.assign(base, { kind: 'photoslot', name: 'Photo spot', img: null, bw: +sv.bw || 800, bh: +sv.bh || 800 });
+        if (sv.k === 'sticker') { const sh = SHAPES[sv.sh] ? sv.sh : Object.keys(SHAPES)[0]; return Object.assign(base, { kind: 'sticker', name: SHAPES[sh].label + ' sticker', shape: sh, color: sv.c || '#ff5d7e', pattern: sv.p || 'solid' }); }
+        if (sv.k === 'text') return Object.assign(base, { kind: 'text', name: 'Text: ' + (sv.t || ''), text: sv.t || '', font: sv.fn || 'Jua', color: sv.c || '#26202a', outline: sv.ol || null, fontSize: +sv.fs || 100, w: +sv.w || 300, h: +sv.h || 120 });
+        if (sv.k === 'film') return Object.assign(base, { kind: 'film', name: 'Film strip', frames: [null, null, null] });
+        if (FRAME_DIMS[sv.k]) return Object.assign(base, { kind: sv.k, name: EL_NAMES[sv.k] || sv.k, img: null, caption: sv.cp || '', text: sv.t || '', date: sv.d || '' });
+        return null;
+      }).filter(Boolean);
+      W.selectedId = null;
+      patternCache = null; effectCache = { key: '', cv: null };
+      syncBgUI(); selectLayer(null); renderLayerList(); renderWall();
+      return true;
+    }
+    function loadSharedDesign() {
+      if (!location.hash || location.hash.indexOf('#d=') !== 0) return;
+      try {
+        const d = JSON.parse(b64DecodeUnicode(location.hash.slice(3)));
+        if (applyDesign(d)) toast('Shared design loaded! The photo spots are empty - add your own photos');
+        else toast('That design link could not be loaded');
+      } catch (e) { toast('That design link could not be loaded'); }
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+    $('#btn-share-link').addEventListener('click', async () => {
+      if (mode !== 'wall') { toast('Design links work in the Wallpaper tab'); return; }
+      if (!W.layers.length) { toast('Add something to the wallpaper first'); return; }
+      const url = location.origin + location.pathname + '#d=' + b64EncodeUnicode(JSON.stringify(serializeDesign()));
+      try { await navigator.clipboard.writeText(url); toast('Design link copied! Photos stay private - friends add their own'); }
+      catch (e) { window.prompt('Copy your design link:', url); }
+    });
+    $('#btn-share-img').addEventListener('click', async () => {
+      const isWall = mode === 'wall';
+      const target = isWall ? cv : fcCv;
+      const name = isWall ? 'my-wallpaper.png' : 'my-4cut.png';
+      let probe = null;
+      try { probe = new File([new Blob(['x'], { type: 'image/png' })], 'x.png', { type: 'image/png' }); } catch (e) { probe = null; }
+      const canShareFiles = !!(probe && navigator.canShare && navigator.canShare({ files: [probe] }));
+      if (!canShareFiles) {
+        if (isWall) { const keep = W.selectedId; W.selectedId = null; renderWall(); downloadCanvas(cv, name); W.selectedId = keep; renderWall(); }
+        else { const keep = fc.sel; fc.sel = -1; renderFC(); downloadCanvas(fcCv, name); fc.sel = keep; renderFC(); }
+        toast('This browser cannot share files, so the PNG was downloaded instead');
+        return;
+      }
+      let keep;
+      if (isWall) { keep = W.selectedId; W.selectedId = null; renderWall(); } else { keep = fc.sel; fc.sel = -1; renderFC(); }
+      target.toBlob(async (blob) => {
+        if (isWall) { W.selectedId = keep; renderWall(); } else { fc.sel = keep; renderFC(); }
+        if (!blob) { toast('Could not create the image'); return; }
+        try { await navigator.share({ files: [new File([blob], name, { type: 'image/png' })], title: 'My wallpaper' }); }
+        catch (e) { /* share sheet was closed */ }
+      }, 'image/png');
+    });
+
     /* ================= init ================= */
     syncBgUI();
     selectLayer(null);
@@ -1685,6 +1794,7 @@
     renderFcSlots();
     syncFcPanel();
     renderFC();
+    loadSharedDesign();
     </script>
   </body>
 </html>
