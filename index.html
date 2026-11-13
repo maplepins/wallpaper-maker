@@ -295,6 +295,15 @@
                 <input type="color" id="pattern-color-custom" value="#fff0f3" aria-label="Custom pattern color" />
               </div>
             </div>
+            <div class="field" style="margin-top:10px">
+              <label>Overlay effect</label>
+              <div class="row" role="group" aria-label="Overlay effect">
+                <button data-effect="none" aria-pressed="true">None</button>
+                <button data-effect="grain" aria-pressed="false">Grain</button>
+                <button data-effect="sparkle" aria-pressed="false">Sparkle</button>
+                <button data-effect="both" aria-pressed="false">Both</button>
+              </div>
+            </div>
             <div id="bg-photo-ui" class="hidden">
               <p class="desc">Pick a photo for the background and it fills the canvas. The original resolution is kept as is.</p>
               <label class="btn primary block" for="bg-photo-input">
@@ -313,6 +322,42 @@
               Add photos
             </label>
             <input type="file" id="photo-input" accept="image/*" multiple />
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--butter)"></span>Frames &amp; extras</h3>
+            <p class="desc">Tap to add an element. Photo frames hold one photo: select the frame, then add its photo below.</p>
+            <div class="row" role="group" aria-label="Add element">
+              <button data-addel="polaroid">Polaroid</button>
+              <button data-addel="ticket">Ticket</button>
+              <button data-addel="stamp">Stamp</button>
+            </div>
+            <div class="row" role="group" aria-label="Add element">
+              <button data-addel="window">Window</button>
+              <button data-addel="player">Player</button>
+              <button data-addel="cassette">Cassette</button>
+            </div>
+            <div class="row" role="group" aria-label="Add element">
+              <button data-addel="receipt">Receipt</button>
+              <button data-addel="calendar">Calendar</button>
+              <button data-addel="dday">D-day</button>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <label class="btn" style="flex:1" for="el-photo">Photo for selected frame</label>
+              <input type="file" id="el-photo" accept="image/*" />
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="el-text">Text for selected element</label>
+                <textarea id="el-text" rows="3" placeholder="Caption, ticket title, song title / artist, receipt lines, D-day label"></textarea>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="el-date">D-day date</label>
+                <input type="date" id="el-date" />
+              </div>
+            </div>
           </section>
 
           <section class="card">
@@ -579,6 +624,16 @@
       c.restore();
     }
 
+    function pinPath(c) { c.beginPath(); c.arc(0, -16, 21, 0, Math.PI * 2); c.moveTo(-8, -1); c.lineTo(0, 44); c.lineTo(8, -1); c.closePath(); }
+    function roundedRectSub(c, x, y, w, h, r) {
+      c.moveTo(x + r, y);
+      c.arcTo(x + w, y, x + w, y + h, r);
+      c.arcTo(x + w, y + h, x, y + h, r);
+      c.arcTo(x, y + h, x, y, r);
+      c.arcTo(x, y, x + w, y, r);
+      c.closePath();
+    }
+    function clipPath(c) { c.beginPath(); roundedRectSub(c, -17, -42, 34, 84, 17); roundedRectSub(c, -8, -22, 16, 56, 8); }
     function postitDraw(c, w, h, color) {
       c.save();
       const fold = Math.min(w, h) * 0.22;
@@ -608,6 +663,8 @@
       bone:   { label: 'Bone', path: bonePath },
       tape:   { label: 'Tape', path: null },
       postit: { label: 'Post-it', path: null },
+      pin:    { label: 'Pin', path: pinPath },
+      clip:   { label: 'Clip', path: clipPath, stroke: true },
     };
     const SHAPE_SVG = {
       heart: '<path d="M50 84C14 56 6 34 22 20c10-9 24-6 28 4 4-10 18-13 28-4 16 14 8 36-28 64z"/>',
@@ -622,6 +679,8 @@
       bone: '<g transform="rotate(45 50 50)"><rect x="26" y="41" width="48" height="18" rx="9"/><circle cx="26" cy="41" r="11"/><circle cx="26" cy="59" r="11"/><circle cx="74" cy="41" r="11"/><circle cx="74" cy="59" r="11"/></g>',
       tape: '<rect x="8" y="34" width="84" height="32" rx="3" opacity=".85"/>',
       postit: '<path d="M24 18h52v38l-14 14H24z"/><path d="M62 70l14-14H62z" opacity=".45"/>',
+      pin: '<circle cx="50" cy="32" r="17"/><path d="M43 44l7 38 7-38z"/>',
+      clip: '<rect x="34" y="8" width="32" height="84" rx="16" fill="none" stroke-width="7"/><rect x="43" y="26" width="14" height="56" rx="7" fill="none" stroke-width="6"/>',
     };
 
     /* ================= WALLPAPER state ================= */
@@ -636,6 +695,7 @@
       layers: [],       // {id, kind:'photo'|'sticker'|'text', name, x,y, baseW,baseH, scale, rot, opacity, flip, ...}
       selectedId: null,
       stickerColor: '#ff5d7e',
+      effect: 'none',
     };
     let uid = 1;
     const GRADIENTS = [
@@ -647,8 +707,10 @@
     const STICKER_COLORS = ['#ff5d7e', '#f5a623', '#17b890', '#3d9be9', '#9b6dd6', '#ffffff', '#26202a'];
 
     function sel() { return W.layers.find(l => l.id === W.selectedId) || null; }
+    const FRAME_DIMS = { polaroid: [620, 760], ticket: [1000, 420], stamp: [560, 680], window: [860, 640], player: [980, 360], cassette: [920, 580], receipt: [460, 900], calendar: [760, 640], dday: [760, 300] };
     function layerDims(l) {
       const s = l.scale;
+      if (FRAME_DIMS[l.kind]) return { w: FRAME_DIMS[l.kind][0] * s, h: FRAME_DIMS[l.kind][1] * s };
       if (l.kind === 'film') return { w: 1150 * s, h: 400 * s };
       if (l.kind === 'photo') return { w: l.img.width * s, h: l.img.height * s };
       if (l.kind === 'sticker') return l.shape === 'tape' ? { w: 520 * s, h: 170 * s } : l.shape === 'postit' ? { w: 340 * s, h: 340 * s } : { w: 300 * s, h: 300 * s };
@@ -744,6 +806,243 @@
       }
       g.restore();
     }
+    function drawPhotoSlot(g, img, x, y, w, h) {
+      if (img) { drawCoverImg(g, img, x, y, w, h); return; }
+      g.fillStyle = '#e9e2d8'; g.fillRect(x, y, w, h);
+      g.fillStyle = 'rgba(0,0,0,0.38)';
+      g.font = Math.round(h * 0.085) + 'px sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('Add a photo', x + w / 2, y + h / 2);
+    }
+    function drawPolaroid(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.fillStyle = '#ffffff'; g.fillRect(x0, y0, w, h);
+      const m = w * 0.07, capH = h * 0.17;
+      drawPhotoSlot(g, l.img, x0 + m, y0 + m, w - m * 2, h - m * 2 - capH);
+      if (l.caption) {
+        g.fillStyle = '#3a3440'; g.font = Math.round(h * 0.052) + 'px Gaegu, cursive';
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText(l.caption, 0, y0 + h - capH / 2 - m * 0.2);
+      }
+    }
+    function drawTicket(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.fillStyle = '#f6e7c8'; rrPath(g, x0, y0, w, h, h * 0.06); g.fill();
+      const m = h * 0.11, ph = h - m * 2;
+      drawPhotoSlot(g, l.img, x0 + m, y0 + m, ph, ph);
+      const stubX = x0 + w * 0.74;
+      g.strokeStyle = 'rgba(0,0,0,0.35)'; g.lineWidth = Math.max(2, h * 0.006); g.setLineDash([h * 0.03, h * 0.03]);
+      g.beginPath(); g.moveTo(stubX, y0 + h * 0.06); g.lineTo(stubX, y0 + h * 0.94); g.stroke(); g.setLineDash([]);
+      g.fillStyle = '#40382c'; g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.font = 'bold ' + Math.round(h * 0.11) + 'px sans-serif';
+      g.fillText(l.caption || 'MOVIE NIGHT', x0 + m * 2 + ph, y0 + h * 0.36);
+      g.font = Math.round(h * 0.062) + 'px sans-serif'; g.fillStyle = 'rgba(64,56,44,0.66)';
+      g.fillText('CINEMA - ONE TICKET', x0 + m * 2 + ph, y0 + h * 0.55);
+      g.fillText('NO. 0013', x0 + m * 2 + ph, y0 + h * 0.7);
+      let seed = (l.id * 7919) % 233280;
+      const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+      g.fillStyle = '#2c2618';
+      let bx = stubX + w * 0.045;
+      const bTop = y0 + h * 0.16, bH = h * 0.4;
+      while (bx < x0 + w - w * 0.05) { const bw = 2 + rnd() * h * 0.016; g.fillRect(bx, bTop, bw, bH); bx += bw + 2 + rnd() * h * 0.014; }
+      g.save();
+      g.translate(stubX + w * 0.115, 0); g.rotate(-Math.PI / 2);
+      g.font = 'bold ' + Math.round(h * 0.055) + 'px sans-serif'; g.fillStyle = 'rgba(64,56,44,0.7)';
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('ADMIT ONE', 0, 0);
+      g.restore();
+    }
+    function drawStamp(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.fillStyle = '#ffffff'; g.fillRect(x0, y0, w, h);
+      const m = w * 0.1;
+      g.fillStyle = 'rgba(0,0,0,0.16)';
+      const r = w * 0.017, step = w * 0.052;
+      for (let x = x0 + step; x < x0 + w - step / 2; x += step) {
+        g.beginPath(); g.arc(x, y0 + m / 2, r, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(x, y0 + h - m / 2, r, 0, Math.PI * 2); g.fill();
+      }
+      for (let y = y0 + step; y < y0 + h - step / 2; y += step) {
+        g.beginPath(); g.arc(x0 + m / 2, y, r, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(x0 + w - m / 2, y, r, 0, Math.PI * 2); g.fill();
+      }
+      drawPhotoSlot(g, l.img, x0 + m, y0 + m, w - m * 2, h - m * 2);
+    }
+    function drawWindow(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      const barH = h * 0.13;
+      g.fillStyle = '#eef1f6'; rrPath(g, x0, y0, w, h, h * 0.03); g.fill();
+      g.save(); rrPath(g, x0, y0, w, h, h * 0.03); g.clip();
+      const grad = g.createLinearGradient(0, y0, 0, y0 + barH);
+      grad.addColorStop(0, '#8fb4f0'); grad.addColorStop(1, '#5b83d6');
+      g.fillStyle = grad; g.fillRect(x0, y0, w, barH);
+      g.restore();
+      g.fillStyle = '#ffffff'; g.font = 'bold ' + Math.round(barH * 0.44) + 'px sans-serif';
+      g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillText(l.caption || 'my_photo.jpg', x0 + w * 0.035, y0 + barH / 2);
+      const bs = barH * 0.52, by = y0 + barH / 2;
+      ['#ff5f57', '#febc2e', '#28c840'].forEach((c, i) => {
+        g.fillStyle = c; g.beginPath();
+        g.arc(x0 + w - (3 - i) * bs * 1.5, by, bs / 2, 0, Math.PI * 2); g.fill();
+      });
+      drawPhotoSlot(g, l.img, x0 + w * 0.03, y0 + barH + h * 0.03, w * 0.94, h - barH - h * 0.06);
+    }
+    function drawPlayer(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.fillStyle = '#211d28'; rrPath(g, x0, y0, w, h, h * 0.09); g.fill();
+      const m = h * 0.13, alb = h - m * 2;
+      drawPhotoSlot(g, l.img, x0 + m, y0 + m, alb, alb);
+      const tx = x0 + m * 2 + alb;
+      const lines = (l.caption || '').split('\n');
+      g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillStyle = '#ffffff'; g.font = 'bold ' + Math.round(h * 0.105) + 'px sans-serif';
+      g.fillText(lines[0] || 'Untitled', tx, y0 + h * 0.3);
+      g.fillStyle = 'rgba(255,255,255,0.55)'; g.font = Math.round(h * 0.075) + 'px sans-serif';
+      g.fillText(lines[1] || 'Unknown artist', tx, y0 + h * 0.47);
+      const pw = w - (tx - x0) - m, py = y0 + h * 0.64;
+      g.fillStyle = 'rgba(255,255,255,0.22)'; rrPath(g, tx, py, pw, h * 0.028, h * 0.014); g.fill();
+      g.fillStyle = '#ff5d7e'; rrPath(g, tx, py, pw * 0.42, h * 0.028, h * 0.014); g.fill();
+      g.beginPath(); g.arc(tx + pw * 0.42, py + h * 0.014, h * 0.035, 0, Math.PI * 2); g.fillStyle = '#ffffff'; g.fill();
+      const cy = y0 + h * 0.83, cx = tx + pw / 2, s = h * 0.075;
+      g.fillStyle = '#ffffff';
+      g.beginPath(); g.arc(cx, cy, s * 1.25, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#211d28';
+      g.beginPath(); g.moveTo(cx - s * 0.32, cy - s * 0.5); g.lineTo(cx + s * 0.55, cy); g.lineTo(cx - s * 0.32, cy + s * 0.5); g.closePath(); g.fill();
+      g.fillStyle = '#ffffff';
+      g.beginPath(); g.moveTo(cx - s * 2.6, cy); g.lineTo(cx - s * 1.7, cy - s * 0.55); g.lineTo(cx - s * 1.7, cy + s * 0.55); g.closePath(); g.fill();
+      g.fillRect(cx - s * 2.85, cy - s * 0.55, s * 0.22, s * 1.1);
+      g.beginPath(); g.moveTo(cx + s * 2.6, cy); g.lineTo(cx + s * 1.7, cy - s * 0.55); g.lineTo(cx + s * 1.7, cy + s * 0.55); g.closePath(); g.fill();
+      g.fillRect(cx + s * 2.63, cy - s * 0.55, s * 0.22, s * 1.1);
+    }
+    function drawCassette(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.fillStyle = '#e9dfc9'; rrPath(g, x0, y0, w, h, h * 0.06); g.fill();
+      g.fillStyle = '#d4574e'; g.fillRect(x0, y0 + h * 0.06, w, h * 0.07);
+      const m = w * 0.055;
+      drawPhotoSlot(g, l.img, x0 + m, y0 + h * 0.19, w - m * 2, h * 0.4);
+      const wy = y0 + h * 0.68, wh = h * 0.2;
+      g.fillStyle = '#37303c'; rrPath(g, x0 + m, wy, w - m * 2, wh, h * 0.03); g.fill();
+      [-0.24, 0.24].forEach(fx => {
+        const cxp = fx * w, cyp = wy + wh / 2, r = wh * 0.38;
+        g.fillStyle = '#f2ede2'; g.beginPath(); g.arc(cxp, cyp, r, 0, Math.PI * 2); g.fill();
+        g.strokeStyle = '#37303c'; g.lineWidth = r * 0.22;
+        for (let i = 0; i < 3; i++) { const a = i * Math.PI * 2 / 3 + 0.5; g.beginPath(); g.moveTo(cxp, cyp); g.lineTo(cxp + Math.cos(a) * r * 0.85, cyp + Math.sin(a) * r * 0.85); g.stroke(); }
+        g.fillStyle = '#37303c'; g.beginPath(); g.arc(cxp, cyp, r * 0.2, 0, Math.PI * 2); g.fill();
+      });
+      g.fillStyle = 'rgba(55,48,60,0.5)';
+      [[0.03, 0.05], [0.97, 0.05], [0.03, 0.95], [0.97, 0.95]].forEach(([fx, fy]) => { g.beginPath(); g.arc(x0 + w * fx, y0 + h * fy, h * 0.016, 0, Math.PI * 2); g.fill(); });
+    }
+    function drawReceipt(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      const jag = h * 0.018, teeth = 14;
+      g.beginPath();
+      g.moveTo(x0, y0); g.lineTo(x0 + w, y0); g.lineTo(x0 + w, y0 + h - jag);
+      for (let i = 1; i <= teeth; i++) g.lineTo(x0 + w - (i - 0.5) * (w / teeth), y0 + h - (i % 2 ? 0 : jag));
+      g.lineTo(x0, y0 + h - jag); g.closePath();
+      g.fillStyle = '#ffffff'; g.fill();
+      g.fillStyle = '#2c2830'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = 'bold ' + Math.round(h * 0.032) + 'px monospace';
+      g.fillText('RECEIPT', 0, y0 + h * 0.055);
+      g.font = Math.round(h * 0.02) + 'px monospace'; g.fillStyle = 'rgba(44,40,48,0.6)';
+      g.fillText(new Date().toLocaleDateString('en-US'), 0, y0 + h * 0.095);
+      g.strokeStyle = 'rgba(44,40,48,0.4)'; g.lineWidth = Math.max(1.5, h * 0.0016); g.setLineDash([w * 0.02, w * 0.016]);
+      g.beginPath(); g.moveTo(x0 + w * 0.09, y0 + h * 0.125); g.lineTo(x0 + w * 0.91, y0 + h * 0.125); g.stroke(); g.setLineDash([]);
+      const lines = (l.text || '').split('\n').filter(t => t.trim() !== '');
+      g.textAlign = 'left'; g.fillStyle = '#2c2830';
+      g.font = Math.round(h * 0.026) + 'px monospace';
+      const shown = lines.length ? lines : ['Your memo here', 'Add lines in the text box'];
+      shown.slice(0, 16).forEach((t, i) => g.fillText(t.slice(0, 26), x0 + w * 0.1, y0 + h * (0.18 + i * 0.045)));
+      g.font = 'bold ' + Math.round(h * 0.024) + 'px monospace'; g.textAlign = 'center';
+      g.fillText('THANK YOU', 0, y0 + h * 0.93);
+    }
+    function drawCalendar(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.fillStyle = '#ffffff'; rrPath(g, x0, y0, w, h, h * 0.04); g.fill();
+      g.save(); rrPath(g, x0, y0, w, h, h * 0.04); g.clip();
+      g.fillStyle = '#ff5d7e'; g.fillRect(x0, y0, w, h * 0.16);
+      g.restore();
+      const now = new Date();
+      const year = now.getFullYear(), month = now.getMonth();
+      g.fillStyle = '#ffffff'; g.font = 'bold ' + Math.round(h * 0.075) + 'px sans-serif';
+      g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillText(now.toLocaleDateString('en-US', { month: 'long' }) + ' ' + year, x0 + w * 0.06, y0 + h * 0.08);
+      const cols = 7;
+      const gx = x0 + w * 0.05, gy = y0 + h * 0.21, gw = w * 0.9, gh = h * 0.72;
+      const cw = gw / cols, ch = gh / 6.6;
+      g.font = 'bold ' + Math.round(ch * 0.34) + 'px sans-serif'; g.textAlign = 'center';
+      ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach((dn, i) => {
+        g.fillStyle = i === 0 ? '#e5484d' : i === 6 ? '#3d9be9' : 'rgba(38,32,42,0.55)';
+        g.fillText(dn, gx + cw * (i + 0.5), gy + ch * 0.3);
+      });
+      const first = new Date(year, month, 1).getDay();
+      const days = new Date(year, month + 1, 0).getDate();
+      g.font = Math.round(ch * 0.4) + 'px sans-serif';
+      for (let day = 1; day <= days; day++) {
+        const idx = first + day - 1, col = idx % 7, row = Math.floor(idx / 7);
+        const cxp = gx + cw * (col + 0.5), cyp = gy + ch * (row + 1.1);
+        if (day === now.getDate()) {
+          g.fillStyle = '#ff5d7e'; g.beginPath(); g.arc(cxp, cyp, ch * 0.34, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#ffffff';
+        } else g.fillStyle = col === 0 ? '#e5484d' : '#26202a';
+        g.fillText(String(day), cxp, cyp);
+      }
+    }
+    function drawDday(g, l) {
+      const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.fillStyle = '#26202a'; rrPath(g, x0, y0, w, h, h * 0.08); g.fill();
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      let big = 'D-?', sub = l.caption || 'Set a date below';
+      if (l.date) {
+        const target = new Date(l.date + 'T00:00:00');
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const diff = Math.round((target - today) / 86400000);
+        big = diff === 0 ? 'D-DAY' : diff > 0 ? 'D-' + diff : 'D+' + (-diff);
+        sub = l.caption || l.date;
+      }
+      g.fillStyle = '#ffffff'; g.font = 'bold ' + Math.round(h * 0.42) + 'px sans-serif';
+      g.fillText(big, 0, y0 + h * 0.42);
+      g.fillStyle = 'rgba(255,255,255,0.6)'; g.font = Math.round(h * 0.11) + 'px sans-serif';
+      g.fillText(sub, 0, y0 + h * 0.78);
+    }
+    function drawFrameEl(g, l) {
+      if (l.kind === 'polaroid') drawPolaroid(g, l);
+      else if (l.kind === 'ticket') drawTicket(g, l);
+      else if (l.kind === 'stamp') drawStamp(g, l);
+      else if (l.kind === 'window') drawWindow(g, l);
+      else if (l.kind === 'player') drawPlayer(g, l);
+      else if (l.kind === 'cassette') drawCassette(g, l);
+      else if (l.kind === 'receipt') drawReceipt(g, l);
+      else if (l.kind === 'calendar') drawCalendar(g, l);
+      else if (l.kind === 'dday') drawDday(g, l);
+    }
+    function star4(g, x, y, r) {
+      g.beginPath();
+      g.moveTo(x, y - r); g.quadraticCurveTo(x, y, x + r, y); g.quadraticCurveTo(x, y, x, y + r);
+      g.quadraticCurveTo(x, y, x - r, y); g.quadraticCurveTo(x, y, x, y - r);
+      g.fill();
+    }
+    let effectCache = { key: '', cv: null };
+    function drawEffectOverlay(w, h) {
+      if (!W.effect || W.effect === 'none') return;
+      const key = W.effect + '|' + w + 'x' + h;
+      if (effectCache.key !== key) {
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const g = c.getContext('2d');
+        if (W.effect === 'grain' || W.effect === 'both') {
+          const n = Math.floor(w * h / 900);
+          for (let i = 0; i < n; i++) {
+            g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+            g.fillRect(Math.random() * w, Math.random() * h, 2.2, 2.2);
+          }
+        }
+        if (W.effect === 'sparkle' || W.effect === 'both') {
+          const n = Math.floor(w / 90);
+          g.fillStyle = 'rgba(255,255,255,0.75)';
+          for (let i = 0; i < n; i++) star4(g, Math.random() * w, Math.random() * h, 4 + Math.random() * 9);
+        }
+        effectCache = { key, cv: c };
+      }
+      ctx.drawImage(effectCache.cv, 0, 0);
+    }
     function drawStickerShape(g, l) {
       const d = layerDims(l);
       if (l.shape === 'tape') { tapeDraw(g, d.w, d.h, l.color, l.pattern || 'solid'); return; }
@@ -781,9 +1080,11 @@
         if (l.kind === 'photo') ctx.drawImage(l.display(), -d.w / 2, -d.h / 2, d.w, d.h);
         else if (l.kind === 'sticker') drawStickerShape(ctx, l);
         else if (l.kind === 'film') drawFilmStrip(ctx, l);
+        else if (FRAME_DIMS[l.kind]) drawFrameEl(ctx, l);
         else if (l.kind === 'text') { ctx.scale(l.scale, l.scale); drawTextLayer(ctx, l); }
         ctx.restore();
       }
+      drawEffectOverlay(w, h);
       const s = sel();
       if (s) {
         const d = layerDims(s);
@@ -885,6 +1186,7 @@
       $('#sel-rot-val').textContent = Math.round(s.rot) + '°';
       $('#sel-opacity').value = Math.round(s.opacity * 100);
       $('#sel-opacity-val').textContent = Math.round(s.opacity * 100) + '%';
+      syncElPanel(s);
     }
     function renderLayerList() {
       const list = $('#layer-list'); list.innerHTML = '';
@@ -916,6 +1218,47 @@
       const s = sel(); if (!s) return;
       s.pattern = b.dataset.tapepat; syncSelPanel(); renderWall();
     }));
+    const EL_NAMES = { polaroid: 'Polaroid', ticket: 'Movie ticket', stamp: 'Stamp', window: 'Retro window', player: 'Music player', cassette: 'Cassette', receipt: 'Receipt', calendar: 'Calendar', dday: 'D-day' };
+    const EL_PHOTO = ['polaroid', 'ticket', 'stamp', 'window', 'player', 'cassette'];
+    function addElement(kind) {
+      const { w, h } = PRESETS[W.preset];
+      const layer = { id: uid++, kind, name: EL_NAMES[kind] || kind, img: null, caption: '', text: '', date: '', x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
+      W.layers.push(layer); selectLayer(layer.id); renderWall(); renderLayerList();
+      toast(EL_NAMES[kind] + ' added');
+    }
+    document.querySelectorAll('[data-addel]').forEach(b => b.addEventListener('click', () => addElement(b.dataset.addel)));
+    $('#el-photo').addEventListener('change', async (e) => {
+      const f = e.target.files[0]; e.target.value = '';
+      if (!f) return;
+      const s = sel();
+      if (!s || !EL_PHOTO.includes(s.kind)) { toast('Select a photo frame first'); return; }
+      setBusy(true, 'Loading photo…');
+      try { s.img = await loadImageFromFile(f); renderWall(); toast('Photo set'); }
+      catch { toast("Couldn't load that photo"); }
+      setBusy(false);
+    });
+    $('#el-text').addEventListener('input', (e) => {
+      const s = sel(); if (!s) return;
+      if (s.kind === 'receipt') s.text = e.target.value;
+      else if ('caption' in s) s.caption = e.target.value;
+      renderWall();
+    });
+    $('#el-date').addEventListener('change', (e) => {
+      const s = sel(); if (!s || s.kind !== 'dday') return;
+      s.date = e.target.value; renderWall();
+    });
+    document.querySelectorAll('[data-effect]').forEach(b => b.addEventListener('click', () => {
+      W.effect = b.dataset.effect;
+      document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      renderWall();
+    }));
+    function syncElPanel(s) {
+      if (!s) return;
+      const t = $('#el-text');
+      const val = s.kind === 'receipt' ? (s.text || '') : (s.caption || '');
+      if (t.value !== val) t.value = val;
+      if (s.kind === 'dday' && s.date) $('#el-date').value = s.date;
+    }
     $('#btn-add-film').addEventListener('click', () => {
       const { w, h } = PRESETS[W.preset];
       const layer = { id: uid++, kind: 'film', name: 'Film strip', frames: [null, null, null], x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
