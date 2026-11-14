@@ -107,7 +107,7 @@
         .layout { grid-template-columns: minmax(0, 1fr); padding: 12px; }
       }
       .stage-wrap { position: sticky; top: 76px; }
-      @media (max-width: 900px) { .stage-wrap { position: static; } }
+      @media (max-width: 1280px) { .stage-wrap { position: static; } }
       .stage {
         background:
           repeating-conic-gradient(var(--bg-soft) 0% 25%, transparent 0% 50%) 0 0 / 26px 26px;
@@ -116,7 +116,8 @@
         display: grid; place-items: center;
       }
       canvas.editor {
-        display: block; width: 100%; height: auto;
+        display: block; width: min(100%, calc((100dvh - 235px) * var(--ar, 1.7778))); height: auto;
+        margin-inline: auto;
         border-radius: 6px; box-shadow: var(--shadow);
         touch-action: none; background: #fff;
       }
@@ -1589,6 +1590,7 @@
       W.layers.forEach(l => { l.x *= fx; l.y *= fy; l.scale *= (fx + fy) / 2; });
       W.preset = name;
       cv.width = nw.w; cv.height = nw.h;
+      cv.style.setProperty('--ar', String(nw.w / nw.h));
       $('#cv-meta').textContent = nw.label;
       $('#preset-laptop').setAttribute('aria-pressed', name === 'laptop');
       $('#preset-ipad').setAttribute('aria-pressed', name === 'ipad');
@@ -2053,6 +2055,7 @@
       const preset = PRESETS[d.preset] ? d.preset : 'laptop';
       W.preset = preset;
       cv.width = PRESETS[preset].w; cv.height = PRESETS[preset].h;
+      cv.style.setProperty('--ar', String(PRESETS[preset].w / PRESETS[preset].h));
       $('#cv-meta').textContent = PRESETS[preset].label;
       $('#preset-laptop').setAttribute('aria-pressed', String(preset === 'laptop'));
       $('#preset-ipad').setAttribute('aria-pressed', String(preset === 'ipad'));
