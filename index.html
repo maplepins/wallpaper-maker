@@ -702,6 +702,7 @@
     function sparklePath(c) { c.beginPath(); c.moveTo(0, -46); c.quadraticCurveTo(6, -8, 46, 0); c.quadraticCurveTo(6, 8, 0, 46); c.quadraticCurveTo(-6, 8, -46, 0); c.quadraticCurveTo(-6, -8, 0, -46); c.closePath(); }
     function flowerPath(c) { c.beginPath(); for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * (Math.PI * 2 / 5); c.moveTo(0, 0); c.arc(Math.cos(a) * 24, Math.sin(a) * 24, 17, 0, Math.PI * 2); } }
     function cloudPath(c) { c.beginPath(); c.arc(-22, 8, 17, Math.PI * 0.5, Math.PI * 1.5); c.arc(-4, -6, 21, Math.PI, Math.PI * 1.95); c.arc(20, 4, 16, Math.PI * 1.4, Math.PI * 0.5); c.closePath(); }
+    function roundRectPath(c, x, y, w, h, r) { const rr = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + rr, y); c.arcTo(x + w, y, x + w, y + h, rr); c.arcTo(x + w, y + h, x, y + h, rr); c.arcTo(x, y + h, x, y, rr); c.arcTo(x, y, x + w, y, rr); c.closePath(); }
     function notePath(c) { c.beginPath(); c.ellipse(-14, 26, 12, 9, -0.35, 0, Math.PI * 2); c.moveTo(24, 20); c.ellipse(24, 20, 12, 9, -0.35, 0, Math.PI * 2); c.moveTo(-3, 24); c.lineTo(-3, -30); c.lineTo(35, -36); c.lineTo(35, 18); c.lineTo(27, 18); c.lineTo(27, -27); c.lineTo(5, -22); c.lineTo(5, 26); c.closePath(); }
     function moonPath(c) { c.beginPath(); c.arc(0, 0, 40, Math.PI * 0.32, Math.PI * 1.68); c.arc(17, -8, 31, Math.PI * 1.5, Math.PI * 0.45, true); c.closePath(); }
     function bowPath(c) { c.beginPath(); c.moveTo(0, 0); c.bezierCurveTo(-46, -34, -52, 22, -6, 10); c.bezierCurveTo(-50, 30, -44, -26, 0, 0); c.moveTo(0, 0); c.bezierCurveTo(46, -34, 52, 22, 6, 10); c.bezierCurveTo(50, 30, 44, -26, 0, 0); c.closePath(); c.moveTo(-8, -9); c.arc(0, 0, 10, 0, Math.PI * 2); }
@@ -1336,6 +1337,19 @@
         ctx.font = '700 ' + Math.round(rhR * 1.25) + 'px sans-serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('↻', 0, rhY + rhR * 0.08);
+        const trR = Math.max(16, w * 0.007), trX = d.w / 2, trY = -d.h / 2;
+        ctx.beginPath(); ctx.arc(trX, trY, trR, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff'; ctx.fill();
+        ctx.strokeStyle = '#e5484d'; ctx.lineWidth = Math.max(3, w * 0.0012); ctx.stroke();
+        ctx.lineWidth = Math.max(3, trR * 0.15); ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(trX - trR * 0.55, trY - trR * 0.30); ctx.lineTo(trX + trR * 0.55, trY - trR * 0.30);
+        ctx.moveTo(trX - trR * 0.20, trY - trR * 0.52); ctx.lineTo(trX + trR * 0.20, trY - trR * 0.52);
+        ctx.moveTo(trX - trR * 0.40, trY - trR * 0.16); ctx.lineTo(trX - trR * 0.30, trY + trR * 0.52);
+        ctx.lineTo(trX + trR * 0.30, trY + trR * 0.52); ctx.lineTo(trX + trR * 0.40, trY - trR * 0.16);
+        ctx.moveTo(trX - trR * 0.13, trY); ctx.lineTo(trX - trR * 0.13, trY + trR * 0.32);
+        ctx.moveTo(trX + trR * 0.13, trY); ctx.lineTo(trX + trR * 0.13, trY + trR * 0.32);
+        ctx.stroke(); ctx.lineCap = 'butt';
         if (EL_PHOTO.includes(s.kind) || s.kind === 'film' || s.kind === 'fourcut') {
           const multi = s.kind === 'film' || s.kind === 'fourcut';
           const filled = multi ? s.frames.every(f => f) : !!s.img;
@@ -1383,6 +1397,14 @@
       const tol = Math.max(60, PRESETS[W.preset].w * 0.016);
       return Math.hypot(lx, ly - hy) < tol;
     }
+    function nearTrashHandle(l, px, py) {
+      const dx = px - l.x, dy = py - l.y;
+      const a = -l.rot * Math.PI / 180;
+      const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+      const d = layerDims(l);
+      const tol = Math.max(70, PRESETS[W.preset].w * 0.018);
+      return Math.hypot(lx - d.w / 2, ly + d.h / 2) < tol;
+    }
     let addPicBtn = null;
     let drag = null;
     function openFramePhoto(s) {
@@ -1396,6 +1418,12 @@
       if (s && addPicBtn && addPicBtn.id === s.id) {
         const loc = hitLayer(s, p.x, p.y);
         if (loc && Math.abs(loc.lx) <= addPicBtn.w / 2 && Math.abs(loc.ly) <= addPicBtn.h / 2) { openFramePhoto(s); return; }
+      }
+      if (s && nearTrashHandle(s, p.x, p.y)) {
+        pushHistory();
+        W.layers = W.layers.filter(l => l.id !== s.id);
+        selectLayer(null); toast('Deleted');
+        return;
       }
       if (s && nearRotateHandle(s, p.x, p.y)) {
         pushHistory();
