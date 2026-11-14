@@ -241,6 +241,10 @@
           <div class="sub">High-res wallpapers from your photos · 4-cut strips</div>
         </span>
       </div>
+      <div class="row" style="gap:6px">
+        <button class="btn" id="btn-undo" type="button" disabled aria-label="Undo">&#8630; Undo</button>
+        <button class="btn" id="btn-redo" type="button" disabled aria-label="Redo">Redo &#8631;</button>
+      </div>
       <nav class="tabs" role="tablist" aria-label="Tool selection">
         <button role="tab" id="tab-wall" aria-selected="true">Wallpaper</button>
         <button role="tab" id="tab-fc" aria-selected="false" hidden style="display:none">4-Cut Maker</button>
@@ -1309,6 +1313,7 @@
         ctx.restore();
       }
       drawEffectOverlay(w, h);
+      addPicBtn = null;
       const s = sel();
       if (s) {
         const d = layerDims(s);
@@ -1330,7 +1335,21 @@
         ctx.fillStyle = '#fff';
         ctx.font = '700 ' + Math.round(rhR * 1.25) + 'px sans-serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('\u21bb', 0, rhY + rhR * 0.08);
+        ctx.fillText('↻', 0, rhY + rhR * 0.08);
+        if (EL_PHOTO.includes(s.kind) || s.kind === 'film' || s.kind === 'fourcut') {
+          const multi = s.kind === 'film' || s.kind === 'fourcut';
+          const filled = multi ? s.frames.every(f => f) : !!s.img;
+          const label = filled ? 'Change picture' : '+ Add picture';
+          const fs = Math.max(34, w * 0.011);
+          ctx.font = '700 ' + fs + 'px "Jua", "Gowun Dodum", sans-serif';
+          const bw = ctx.measureText(label).width + fs * 1.7, bh = fs * 2.05;
+          roundRectPath(ctx, -bw / 2, -bh / 2, bw, bh, bh / 2);
+          ctx.fillStyle = '#ff5d7e'; ctx.fill();
+          ctx.lineWidth = Math.max(3, w * 0.0012); ctx.strokeStyle = '#fff'; ctx.stroke();
+          ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(label, 0, fs * 0.06);
+          addPicBtn = { id: s.id, w: bw, h: bh };
+        }
         ctx.restore();
       }
     }
@@ -1364,22 +1383,35 @@
       const tol = Math.max(60, PRESETS[W.preset].w * 0.016);
       return Math.hypot(lx, ly - hy) < tol;
     }
+    let addPicBtn = null;
     let drag = null;
+    function openFramePhoto(s) {
+      if (s.kind === 'film') { let i = s.frames.findIndex(f => !f); if (i < 0) i = 0; $('#film-file-' + i).click(); }
+      else if (s.kind === 'fourcut') { let i = s.frames.findIndex(f => !f); if (i < 0) i = 0; $('#fourcut-file-' + i).click(); }
+      else $('#el-photo').click();
+    }
     cv.addEventListener('pointerdown', (e) => {
       const p = toCanvasCoords(e, cv);
       const s = sel();
+      if (s && addPicBtn && addPicBtn.id === s.id) {
+        const loc = hitLayer(s, p.x, p.y);
+        if (loc && Math.abs(loc.lx) <= addPicBtn.w / 2 && Math.abs(loc.ly) <= addPicBtn.h / 2) { openFramePhoto(s); return; }
+      }
       if (s && nearRotateHandle(s, p.x, p.y)) {
+        pushHistory();
         drag = { mode: 'rotate', id: s.id };
         cv.setPointerCapture(e.pointerId); return;
       }
       if (s && nearHandle(s, p.x, p.y)) {
         const d = layerDims(s);
+        pushHistory();
         drag = { mode: 'scale', id: s.id, startDist: Math.max(20, Math.hypot(p.x - s.x, p.y - s.y)), startScale: s.scale, w0: d.w, h0: d.h };
         cv.setPointerCapture(e.pointerId); return;
       }
       for (let i = W.layers.length - 1; i >= 0; i--) {
         if (hitLayer(W.layers[i], p.x, p.y)) {
           selectLayer(W.layers[i].id);
+          pushHistory();
           drag = { mode: 'move', id: W.layers[i].id, dx: p.x - W.layers[i].x, dy: p.y - W.layers[i].y };
           cv.setPointerCapture(e.pointerId); return;
         }
@@ -1460,7 +1492,7 @@
       photoTargets.forEach(t => {
         const b = document.createElement('button');
         b.className = 'btn'; b.type = 'button'; b.style.flex = '1'; b.textContent = t.label; b.disabled = !t.has;
-        b.addEventListener('click', () => { t.clear(); renderWall(); syncSelPanel(); });
+        b.addEventListener('click', () => { pushHistory(); t.clear(); renderWall(); syncSelPanel(); });
         photoBtns.appendChild(b);
       });
       $('#sel-opacity').value = Math.round(s.opacity * 100);
@@ -1486,12 +1518,13 @@
         item.querySelector('.nm').textContent = l.name;
         item.querySelector('.nm').addEventListener('click', () => selectLayer(l.id));
         item.querySelector('[data-act="up"]').addEventListener('click', () => {
-          if (idx < W.layers.length - 1) { [W.layers[idx], W.layers[idx + 1]] = [W.layers[idx + 1], W.layers[idx]]; renderWall(); renderLayerList(); }
+          if (idx < W.layers.length - 1) { pushHistory(); [W.layers[idx], W.layers[idx + 1]] = [W.layers[idx + 1], W.layers[idx]]; renderWall(); renderLayerList(); }
         });
         item.querySelector('[data-act="down"]').addEventListener('click', () => {
-          if (idx > 0) { [W.layers[idx], W.layers[idx - 1]] = [W.layers[idx - 1], W.layers[idx]]; renderWall(); renderLayerList(); }
+          if (idx > 0) { pushHistory(); [W.layers[idx], W.layers[idx - 1]] = [W.layers[idx - 1], W.layers[idx]]; renderWall(); renderLayerList(); }
         });
         item.querySelector('[data-act="del"]').addEventListener('click', () => {
+          pushHistory();
           W.layers = W.layers.filter(x => x.id !== l.id);
           if (W.selectedId === l.id) W.selectedId = null;
           renderWall(); renderLayerList(); syncSelPanel();
@@ -1507,6 +1540,7 @@
         if (!f) return;
         const s = sel();
         if (!s || s.kind !== 'fourcut') { toast('Select a 4-Cut strip first'); return; }
+        pushHistory();
         setBusy(true, 'Loading photo…');
         try { s.frames[i] = await loadImageFromFile(f); renderWall(); }
         catch { toast("Couldn't load that photo"); }
@@ -1517,17 +1551,83 @@
     $('#fourcut-cap-color').addEventListener('input', (e) => { const s = sel(); if (s && s.kind === 'fourcut') { s.captionColor = e.target.value; renderWall(); } });
     document.querySelectorAll('[data-tapepat]').forEach(b => b.addEventListener('click', () => {
       const s = sel(); if (!s) return;
+      pushHistory();
       s.pattern = b.dataset.tapepat; syncSelPanel(); renderWall();
     }));
     const EL_NAMES = { polaroid: 'Polaroid', ticket: 'Movie ticket', stamp: 'Stamp', window: 'Retro window', player: 'Music player', cassette: 'Cassette', receipt: 'Receipt', calendar: 'Calendar', dday: 'D-day', fourcut: '4-Cut strip', cd: 'CD' };
     const EL_COLOR_DEFAULTS = { polaroid: ['#ffffff', '#3a3440'], ticket: ['#f6e7c8', '#40382c'], stamp: ['#ffffff', null], window: ['#eef1f6', '#5b83d6'], player: ['#211d28', '#ff5d7e'], cassette: ['#e9dfc9', '#d4574e'], receipt: ['#ffffff', '#2c2830'], calendar: ['#ffffff', '#ff5d7e'], dday: ['#26202a', '#ffffff'], cd: ['#ececf2', '#ff5d7e'] };
     const EL_PHOTO = ['polaroid', 'ticket', 'stamp', 'window', 'player', 'cassette', 'photoslot', 'cd'];
+
+    /* ================= undo / redo ================= */
+    let undoStack = [], redoStack = [];
+    function snapshotState() {
+      return {
+        preset: W.preset,
+        bg: { ...W.bg, grad: W.bg.grad ? [...W.bg.grad] : W.bg.grad, gradCustom: W.bg.gradCustom ? [...W.bg.gradCustom] : null },
+        effect: W.effect, stickerColor: W.stickerColor, filmDef: filmVariantDefault,
+        layers: W.layers.map(l => ({ ...l, frames: l.frames ? [...l.frames] : l.frames })),
+      };
+    }
+    function pushHistory() {
+      undoStack.push(snapshotState());
+      if (undoStack.length > 60) undoStack.shift();
+      redoStack = [];
+      syncHistoryBtns();
+    }
+    function restoreState(s) {
+      W.preset = s.preset;
+      W.bg = { ...s.bg, grad: s.bg.grad ? [...s.bg.grad] : s.bg.grad, gradCustom: s.bg.gradCustom ? [...s.bg.gradCustom] : null };
+      W.effect = s.effect; W.stickerColor = s.stickerColor; filmVariantDefault = s.filmDef;
+      W.layers = s.layers.map(l => ({ ...l, frames: l.frames ? [...l.frames] : l.frames }));
+      const p = PRESETS[W.preset];
+      cv.width = p.w; cv.height = p.h;
+      cv.style.setProperty('--ar', String(p.w / p.h));
+      $('#cv-meta').textContent = p.label;
+      $('#preset-laptop').setAttribute('aria-pressed', String(W.preset === 'laptop'));
+      $('#preset-ipad').setAttribute('aria-pressed', String(W.preset === 'ipad'));
+      document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.effect === W.effect)));
+      patternCache = null; effectCache = { key: '', grainCv: null, stars: [] };
+      selectLayer(null); syncBgUI(); refreshSwatches(); syncFilmSegs(); renderLayerList(); renderWall(); syncAnim();
+      syncHistoryBtns();
+    }
+    function syncHistoryBtns() {
+      const u = $('#btn-undo'), r = $('#btn-redo');
+      if (u) u.disabled = !undoStack.length;
+      if (r) r.disabled = !redoStack.length;
+    }
+    function doUndo() {
+      if (mode !== 'wall') { toast('Undo works in the Wallpaper tab'); return; }
+      if (!undoStack.length) return;
+      redoStack.push(snapshotState());
+      restoreState(undoStack.pop());
+    }
+    function doRedo() {
+      if (mode !== 'wall') { toast('Undo works in the Wallpaper tab'); return; }
+      if (!redoStack.length) return;
+      undoStack.push(snapshotState());
+      restoreState(redoStack.pop());
+    }
+    $('#btn-undo').addEventListener('click', doUndo);
+    $('#btn-redo').addEventListener('click', doRedo);
+    document.addEventListener('keydown', (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const t = e.target;
+      if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && (t.type === 'text' || t.type === 'date')))) return;
+      const k = (e.key || '').toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); doRedo(); }
+    });
+    $$('input[type="color"], input[type="range"], input[type="date"]').forEach(el => {
+      el.addEventListener('pointerdown', () => pushHistory());
+    });
+
     function addElement(kind) {
       const { w, h } = PRESETS[W.preset];
       const layer = { id: uid++, kind, name: EL_NAMES[kind] || kind, img: null, caption: '', text: '', date: '', x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
       if (kind === 'fourcut') { layer.frames = [null, null, null, null]; layer.frameColor = '#ffffff'; layer.captionColor = '#26202a'; layer.scale = 0.9; }
       const ecd = EL_COLOR_DEFAULTS[kind];
       if (ecd) { layer.color = ecd[0]; if (ecd[1]) layer.accent = ecd[1]; }
+      pushHistory();
       W.layers.push(layer); selectLayer(layer.id); renderWall(); renderLayerList();
       toast(EL_NAMES[kind] + ' added');
     }
@@ -1537,11 +1637,13 @@
       if (!f) return;
       const s = sel();
       if (!s || !EL_PHOTO.includes(s.kind)) { toast('Select a photo frame first'); return; }
+      pushHistory();
       setBusy(true, 'Loading photo…');
       try { s.img = await loadImageFromFile(f); renderWall(); toast('Photo set'); }
       catch { toast("Couldn't load that photo"); }
       setBusy(false);
     });
+    $('#el-text').addEventListener('focus', () => pushHistory());
     $('#el-text').addEventListener('input', (e) => {
       const s = sel(); if (!s) return;
       if (s.kind === 'receipt') s.text = e.target.value;
@@ -1553,6 +1655,7 @@
       s.date = e.target.value; renderWall();
     });
     document.querySelectorAll('[data-effect]').forEach(b => b.addEventListener('click', () => {
+      pushHistory();
       W.effect = b.dataset.effect;
       document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       renderWall(); syncAnim();
@@ -1567,6 +1670,7 @@
     $('#btn-add-film').addEventListener('click', () => {
       const { w, h } = PRESETS[W.preset];
       const layer = { id: uid++, kind: 'film', name: 'Film strip', frames: [null, null, null], variant: filmVariantDefault, x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
+      pushHistory();
       W.layers.push(layer); selectLayer(layer.id); renderWall(); renderLayerList();
       toast('Film strip added. Put a photo in each frame');
     });
@@ -1576,6 +1680,7 @@
         if (!f) return;
         const s = sel();
         if (!s || s.kind !== 'film') { toast('Select a film strip first'); return; }
+        pushHistory();
         setBusy(true, 'Loading photo…');
         try { s.frames[i] = await loadImageFromFile(f); renderWall(); toast('Frame ' + (i + 1) + ' photo set'); }
         catch { toast("Couldn't load that photo"); }
@@ -1589,6 +1694,7 @@
       $$('[data-selfilmvariant]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.selfilmvariant === cur)));
     }
     function setFilmVariant(v) {
+      pushHistory();
       filmVariantDefault = v;
       const s = sel();
       if (s && s.kind === 'film') { s.variant = v; renderWall(); }
@@ -1601,19 +1707,22 @@
     $('#sel-opacity').addEventListener('input', (e) => { const s = sel(); if (s) { s.opacity = e.target.value / 100; $('#sel-opacity-val').textContent = e.target.value + '%'; renderWall(); } });
     $('#btn-del').addEventListener('click', () => {
       const s = sel(); if (!s) return;
+      pushHistory();
       W.layers = W.layers.filter(l => l.id !== s.id);
       selectLayer(null); toast('Deleted');
     });
     $('#btn-dup').addEventListener('click', () => {
       const s = sel(); if (!s) return;
+      pushHistory();
       const { w } = PRESETS[W.preset];
       const copy = { ...s, id: uid++, x: s.x + w * 0.03, y: s.y + w * 0.03, name: s.name + ' copy' };
       W.layers.push(copy); selectLayer(copy.id);
     });
-    $('#btn-flip').addEventListener('click', () => { const s = sel(); if (s) { s.flip = !s.flip; renderWall(); } });
+    $('#btn-flip').addEventListener('click', () => { const s = sel(); if (s) { pushHistory(); s.flip = !s.flip; renderWall(); } });
 
     /* ================= presets & background controls ================= */
     function setPreset(name) {
+      pushHistory();
       const old = PRESETS[W.preset], nw = PRESETS[name];
       const fx = nw.w / old.w, fy = nw.h / old.h;
       W.layers.forEach(l => { l.x *= fx; l.y *= fy; l.scale *= (fx + fy) / 2; });
@@ -1634,7 +1743,7 @@
         const b = document.createElement('button');
         b.className = 'swatch'; b.style.background = c; b.type = 'button';
         b.setAttribute('aria-pressed', c === current); b.setAttribute('aria-label', 'Color ' + c);
-        b.addEventListener('click', () => { pushRecent(c); onPick(c); });
+        b.addEventListener('click', () => { pushHistory(); pushRecent(c); onPick(c); });
         el.appendChild(b);
       });
     }
@@ -1647,7 +1756,7 @@
         b.style.background = `linear-gradient(135deg, ${g[0]}, ${g[1]})`;
         b.setAttribute('aria-pressed', String(!W.bg.gradCustom && W.bg.grad === i));
         b.setAttribute('aria-label', 'Gradient ' + (i + 1));
-        b.addEventListener('click', () => { pushRecent(g[1]); pushRecent(g[0]); W.bg.grad = i; W.bg.gradCustom = null; W.bg.type = 'gradient'; syncBgUI(); renderWall(); });
+        b.addEventListener('click', () => { pushHistory(); pushRecent(g[1]); pushRecent(g[0]); W.bg.grad = i; W.bg.gradCustom = null; W.bg.type = 'gradient'; syncBgUI(); renderWall(); });
         gEl.appendChild(b);
       });
       swatchRow($('#pattern-swatches'), BG_COLORS, W.bg.patternColor, (c) => { W.bg.patternColor = c; renderWall(); });
@@ -1669,6 +1778,7 @@
       refreshSwatches();
     }
     $$('#view-wall [data-bgtype]').forEach(b => b.addEventListener('click', () => {
+      pushHistory();
       W.bg.type = b.dataset.bgtype;
       if (W.bg.type === 'photo' && !W.bg.img) { syncBgUI(); return; }
       syncBgUI(); renderWall();
@@ -1729,6 +1839,7 @@
     }));
     $('#bg-photo-input').addEventListener('change', async (e) => {
       const f = e.target.files[0]; if (!f) return;
+      pushHistory();
       setBusy(true, 'Loading background photo…');
       try { W.bg.img = await loadImageFromFile(f); W.bg.type = 'photo'; syncBgUI(); renderWall(); toast('Background photo added'); }
       catch { toast("Couldn't load that photo"); }
@@ -1738,6 +1849,7 @@
     /* ================= add photos / stickers / text ================= */
     $('#photo-input').addEventListener('change', async (e) => {
       const files = Array.from(e.target.files || []); if (!files.length) return;
+      pushHistory();
       setBusy(true, 'Loading photo…');
       const { w, h } = PRESETS[W.preset];
       for (const f of files) {
@@ -1771,6 +1883,7 @@
           color: W.stickerColor, x: w / 2, y: h / 2,
           scale: (w * 0.10) / 300, rot: 0, opacity: 1, flip: false,
         };
+        pushHistory();
         W.layers.push(layer); selectLayer(layer.id);
       });
       grid.appendChild(b);
@@ -1794,6 +1907,7 @@
         fontSize, w: meas.measureText(text).width, h: fontSize * 1.25,
         x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false,
       };
+      pushHistory();
       W.layers.push(layer); selectLayer(layer.id);
       $('#text-input').value = '';
     });
@@ -1868,6 +1982,7 @@
     $('#tol-range').addEventListener('input', (e) => { $('#tol-val').textContent = e.target.value; const s = sel(); if (s) s.tol = +e.target.value; });
     $('#btn-cutout').addEventListener('click', () => {
       const s = sel(); if (!s || s.kind !== 'photo') return;
+      pushHistory();
       setBusy(true, 'Removing background… (at full original resolution)');
       setTimeout(() => {
         try {
@@ -1882,6 +1997,7 @@
     });
     $('#btn-uncut').addEventListener('click', () => {
       const s = sel(); if (!s) return;
+      pushHistory();
       s.cut = null; s.displayCanvas = null;
       $('#btn-uncut').disabled = true;
       renderWall(); toast('Restored the original photo');
@@ -2080,6 +2196,7 @@
       };
     }
     function applyDesign(d) {
+      pushHistory();
       if (!d || !Array.isArray(d.layers)) return false;
       const preset = PRESETS[d.preset] ? d.preset : 'laptop';
       W.preset = preset;
