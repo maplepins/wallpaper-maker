@@ -171,6 +171,10 @@
         background: var(--bg); padding: 3px; cursor: pointer;
       }
       input[type="color"].color-big { width: 100%; height: 46px; padding: 4px; }
+      .recent-wrap { margin-top: 7px; }
+      .recent-label { font-size: 11.5px; color: var(--ink-soft); display: block; margin-bottom: 5px; }
+      .recent-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+      .recent-chips .swatch { width: 26px; height: 26px; border-radius: 8px; }
       .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 110px; }
       .field label { font-size: 12px; color: var(--ink-soft); }
       .field input[type="range"] { width: 100%; accent-color: var(--pink); min-height: 28px; }
@@ -238,7 +242,7 @@
       </div>
       <nav class="tabs" role="tablist" aria-label="Tool selection">
         <button role="tab" id="tab-wall" aria-selected="true">Wallpaper</button>
-        <button role="tab" id="tab-fc" aria-selected="false">4-Cut Maker</button>
+        <button role="tab" id="tab-fc" aria-selected="false" hidden style="display:none">4-Cut Maker</button>
       </nav>
       <button class="btn-export" id="btn-export">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></svg>
@@ -298,11 +302,11 @@
               <div class="row" style="margin-top:8px">
                 <div class="field" style="flex:0 0 auto; min-width:0">
                   <label>Color 1</label>
-                  <input type="color" id="grad-color-1" value="#ffd9e3" aria-label="Custom gradient color 1" />
+                  <input type="color" id="grad-color-1" class="color-big" value="#ffd9e3" aria-label="Custom gradient color 1" />
                 </div>
                 <div class="field" style="flex:0 0 auto; min-width:0">
                   <label>Color 2</label>
-                  <input type="color" id="grad-color-2" value="#fff3c9" aria-label="Custom gradient color 2" />
+                  <input type="color" id="grad-color-2" class="color-big" value="#fff3c9" aria-label="Custom gradient color 2" />
                 </div>
               </div>
               <p class="desc" style="margin-top:6px">Pick any two colors for your own gradient.</p>
@@ -316,15 +320,17 @@
                   <button data-pattern="stars" aria-pressed="false">Stars</button>
                 </div>
               </div>
-              <div class="row">
-                <div class="swatches" id="pattern-swatches"></div>
-                <input type="color" id="pattern-color-custom" value="#fff0f3" aria-label="Custom pattern color" />
+              <div class="field">
+                <label>Pattern color - pick any color</label>
+                <input type="color" id="pattern-color-custom" class="color-big" value="#fff0f3" aria-label="Custom pattern color" />
               </div>
-              <div class="row" style="margin-top:8px">
-                <div class="field" style="flex:0 0 auto; min-width:0">
-                  <label>Base color</label>
-                  <input type="color" id="pattern-base-custom" value="#ffe3ea" aria-label="Custom pattern base color" />
-                </div>
+              <div class="field" style="margin-top:10px">
+                <label>Pattern colors</label>
+                <div class="swatches" id="pattern-swatches"></div>
+              </div>
+              <div class="field" style="margin-top:10px">
+                <label>Base color - pick any color</label>
+                <input type="color" id="pattern-base-custom" class="color-big" value="#ffe3ea" aria-label="Custom pattern base color" />
               </div>
             </div>
             <div class="field" style="margin-top:10px">
@@ -374,6 +380,10 @@
               <button data-addel="calendar">Calendar</button>
               <button data-addel="dday">D-day</button>
             </div>
+            <div class="row" role="group" aria-label="Add element">
+              <button data-addel="fourcut" style="flex:1">4-Cut strip (4 photos)</button>
+            </div>
+            <p class="desc" style="margin-top:6px">The 4-Cut strip lives on your wallpaper: select it, then add its 4 photos from the Selected element panel.</p>
             <div class="row" style="margin-top:8px">
               <label class="btn" style="flex:1" for="el-photo">Photo for selected frame</label>
               <input type="file" id="el-photo" accept="image/*" />
@@ -434,9 +444,13 @@
             <h3><span class="dot" style="background:var(--butter)"></span>Stickers</h3>
             <p class="desc">Tap to place it in the center of the canvas. Change its color below.</p>
             <div class="sticker-grid" id="sticker-grid"></div>
-            <div class="row" style="margin-top:10px">
+            <div class="field" style="margin-top:10px">
+              <label>Pick any color</label>
+              <input type="color" id="sticker-color-custom" class="color-big" value="#ff5d7e" aria-label="Custom sticker color" />
+            </div>
+            <div class="field" style="margin-top:10px">
+              <label>Colors</label>
               <div class="swatches" id="sticker-swatches"></div>
-              <input type="color" id="sticker-color-custom" value="#ff5d7e" aria-label="Custom sticker color" />
             </div>
           </section>
 
@@ -460,7 +474,7 @@
               </div>
               <div class="field" style="flex:0 0 auto; min-width:0">
                 <label>Color</label>
-                <input type="color" id="text-color" value="#26202a" aria-label="Text color" />
+                <input type="color" id="text-color" class="color-big" value="#26202a" aria-label="Text color" />
               </div>
             </div>
             <div class="row"><button class="btn primary block" id="btn-add-text">Add text</button></div>
@@ -486,10 +500,36 @@
                 <input type="range" id="sel-opacity" min="10" max="100" value="100" />
               </div>
             </div>
+            <div class="row hidden" id="fourcut-opts">
+              <div class="field">
+                <label>4-Cut photos</label>
+                <div class="row">
+                  <label class="btn" style="flex:1" for="fourcut-file-0">Slot 1</label>
+                  <label class="btn" style="flex:1" for="fourcut-file-1">Slot 2</label>
+                  <label class="btn" style="flex:1" for="fourcut-file-2">Slot 3</label>
+                  <label class="btn" style="flex:1" for="fourcut-file-3">Slot 4</label>
+                </div>
+                <input type="file" id="fourcut-file-0" accept="image/*" />
+                <input type="file" id="fourcut-file-1" accept="image/*" />
+                <input type="file" id="fourcut-file-2" accept="image/*" />
+                <input type="file" id="fourcut-file-3" accept="image/*" />
+                <div class="row" style="margin-top:8px">
+                  <div class="field" style="flex:0 0 auto; min-width:0">
+                    <label>Frame color</label>
+                    <input type="color" id="fourcut-frame-color" class="color-big" value="#ffffff" aria-label="4-cut frame color" />
+                  </div>
+                  <div class="field" style="flex:0 0 auto; min-width:0">
+                    <label>Caption color</label>
+                    <input type="color" id="fourcut-cap-color" class="color-big" value="#26202a" aria-label="4-cut caption color" />
+                  </div>
+                </div>
+                <p class="desc" style="margin-top:6px">Write the caption in "Text for selected element" under Frames &amp; extras.</p>
+              </div>
+            </div>
             <div class="row hidden" id="sel-color-row">
               <div class="field" style="flex:0 0 auto; min-width:0">
                 <label>Color</label>
-                <input type="color" id="sel-color" value="#ff5d7e" aria-label="Selected element color" />
+                <input type="color" id="sel-color" class="color-big" value="#ff5d7e" aria-label="Selected element color" />
               </div>
               <p class="desc" style="align-self:center">Any color you like.</p>
             </div>
@@ -502,6 +542,12 @@
                   <button data-tapepat="stripes" aria-pressed="false">Stripes</button>
                   <button data-tapepat="check" aria-pressed="false">Check</button>
                 </div>
+              </div>
+            </div>
+            <div class="row hidden" id="sel-photo-row">
+              <div class="field">
+                <label>Photo in this element</label>
+                <div class="row" id="sel-photo-btns"></div>
               </div>
             </div>
             <div class="row">
@@ -752,6 +798,7 @@
       const s = l.scale;
       if (FRAME_DIMS[l.kind]) return { w: FRAME_DIMS[l.kind][0] * s, h: FRAME_DIMS[l.kind][1] * s };
       if (l.kind === 'film') return { w: 1150 * s, h: 400 * s };
+      if (l.kind === 'fourcut') return { w: 500 * s, h: 1547 * s };
       if (l.kind === 'photoslot') return { w: l.bw * s, h: l.bh * s };
       if (l.kind === 'photo') return { w: l.img.width * s, h: l.img.height * s };
       if (l.kind === 'sticker') return l.shape === 'tape' ? { w: 520 * s, h: 170 * s } : l.shape === 'postit' ? { w: 340 * s, h: 340 * s } : { w: 300 * s, h: 300 * s };
@@ -816,6 +863,38 @@
       const dw = img.width * s, dh = img.height * s;
       g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
       g.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+      g.restore();
+    }
+    function drawFourCut(g, l) {
+      const d = layerDims(l);
+      const w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
+      g.save();
+      g.fillStyle = l.frameColor || '#ffffff';
+      rrPath(g, x0, y0, w, h, w * 0.03); g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.10)'; g.lineWidth = Math.max(1.5, w * 0.004);
+      rrPath(g, x0, y0, w, h, w * 0.03); g.stroke();
+      const pad = w * 0.05, gap = w * 0.035;
+      const sw = w - pad * 2, sh = sw * 0.75;
+      for (let i = 0; i < 4; i++) {
+        const fx = x0 + pad, fy = y0 + pad + i * (sh + gap);
+        const img = l.frames && l.frames[i];
+        if (img) drawCoverImg(g, img, fx, fy, sw, sh);
+        else {
+          g.fillStyle = 'rgba(0,0,0,0.06)'; g.fillRect(fx, fy, sw, sh);
+          g.fillStyle = 'rgba(0,0,0,0.30)';
+          g.font = Math.round(sh * 0.3) + 'px sans-serif';
+          g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.fillText(String(i + 1), fx + sw / 2, fy + sh / 2);
+        }
+      }
+      if (l.caption) {
+        const capY = y0 + pad + 4 * sh + 3 * gap;
+        const capH = h - (capY - y0) - pad * 0.5;
+        g.fillStyle = l.captionColor || '#26202a';
+        g.font = Math.round(Math.min(capH * 0.42, sw * 0.085)) + 'px "Jua", sans-serif';
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText(l.caption, x0 + w / 2, capY + capH / 2, sw);
+      }
       g.restore();
     }
     function drawFilmStrip(g, l) {
@@ -1122,6 +1201,7 @@
         else if (l.kind === 'photoslot') drawPhotoSlot(ctx, l.img, -d.w / 2, -d.h / 2, d.w, d.h);
         else if (l.kind === 'sticker') drawStickerShape(ctx, l);
         else if (l.kind === 'film') drawFilmStrip(ctx, l);
+        else if (l.kind === 'fourcut') drawFourCut(ctx, l);
         else if (FRAME_DIMS[l.kind]) drawFrameEl(ctx, l);
         else if (l.kind === 'text') { ctx.scale(l.scale, l.scale); drawTextLayer(ctx, l); }
         ctx.restore();
@@ -1219,6 +1299,9 @@
       const s = sel();
       $('#sel-card').classList.toggle('hidden', !s);
       if (!s) return;
+      const isFour = s.kind === 'fourcut';
+      $('#fourcut-opts').classList.toggle('hidden', !isFour);
+      if (isFour) { $('#fourcut-frame-color').value = s.frameColor || '#ffffff'; $('#fourcut-cap-color').value = s.captionColor || '#26202a'; }
       const hasColor = typeof s.color === 'string';
       $('#sel-color-row').classList.toggle('hidden', !hasColor);
       if (hasColor) $('#sel-color').value = s.color;
@@ -1229,6 +1312,17 @@
       $('#sel-scale-val').textContent = Math.round(s.scale * 100) + '%';
       $('#sel-rot').value = Math.round(s.rot);
       $('#sel-rot-val').textContent = Math.round(s.rot) + '°';
+      const photoBtns = $('#sel-photo-btns'); photoBtns.innerHTML = '';
+      let photoTargets = [];
+      if (s.kind === 'film' || s.kind === 'fourcut') photoTargets = (s.frames || []).map((im, i) => ({ label: 'Remove ' + (i + 1), has: !!im, clear: () => { s.frames[i] = null; } }));
+      else if (EL_PHOTO.indexOf(s.kind) >= 0) photoTargets = [{ label: 'Remove photo', has: !!s.img, clear: () => { s.img = null; } }];
+      $('#sel-photo-row').classList.toggle('hidden', !photoTargets.length);
+      photoTargets.forEach(t => {
+        const b = document.createElement('button');
+        b.className = 'btn'; b.type = 'button'; b.style.flex = '1'; b.textContent = t.label; b.disabled = !t.has;
+        b.addEventListener('click', () => { t.clear(); renderWall(); syncSelPanel(); });
+        photoBtns.appendChild(b);
+      });
       $('#sel-opacity').value = Math.round(s.opacity * 100);
       $('#sel-opacity-val').textContent = Math.round(s.opacity * 100) + '%';
       syncElPanel(s);
@@ -1247,7 +1341,8 @@
         item.innerHTML = `
           <button class="nm" type="button"></button>
           <button class="mini" type="button" data-act="up" aria-label="Bring forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 15 6-6 6 6"/></svg></button>
-          <button class="mini" type="button" data-act="down" aria-label="Send backward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>`;
+          <button class="mini" type="button" data-act="down" aria-label="Send backward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+          <button class="mini" type="button" data-act="del" aria-label="Delete element"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
         item.querySelector('.nm').textContent = l.name;
         item.querySelector('.nm').addEventListener('click', () => selectLayer(l.id));
         item.querySelector('[data-act="up"]').addEventListener('click', () => {
@@ -1256,19 +1351,39 @@
         item.querySelector('[data-act="down"]').addEventListener('click', () => {
           if (idx > 0) { [W.layers[idx], W.layers[idx - 1]] = [W.layers[idx - 1], W.layers[idx]]; renderWall(); renderLayerList(); }
         });
+        item.querySelector('[data-act="del"]').addEventListener('click', () => {
+          W.layers = W.layers.filter(x => x.id !== l.id);
+          if (W.selectedId === l.id) W.selectedId = null;
+          renderWall(); renderLayerList(); syncSelPanel();
+        });
         list.appendChild(item);
       });
     }
     $('#sel-color').addEventListener('input', (e) => { const s = sel(); if (s && typeof s.color === 'string') { s.color = e.target.value; renderWall(); } });
+    for (let i = 0; i < 4; i++) {
+      $('#fourcut-file-' + i).addEventListener('change', async (e) => {
+        const f = e.target.files[0]; e.target.value = '';
+        if (!f) return;
+        const s = sel();
+        if (!s || s.kind !== 'fourcut') { toast('Select a 4-Cut strip first'); return; }
+        setBusy(true, 'Loading photo…');
+        try { s.frames[i] = await loadImageFromFile(f); renderWall(); }
+        catch { toast("Couldn't load that photo"); }
+        setBusy(false);
+      });
+    }
+    $('#fourcut-frame-color').addEventListener('input', (e) => { const s = sel(); if (s && s.kind === 'fourcut') { s.frameColor = e.target.value; renderWall(); } });
+    $('#fourcut-cap-color').addEventListener('input', (e) => { const s = sel(); if (s && s.kind === 'fourcut') { s.captionColor = e.target.value; renderWall(); } });
     document.querySelectorAll('[data-tapepat]').forEach(b => b.addEventListener('click', () => {
       const s = sel(); if (!s) return;
       s.pattern = b.dataset.tapepat; syncSelPanel(); renderWall();
     }));
-    const EL_NAMES = { polaroid: 'Polaroid', ticket: 'Movie ticket', stamp: 'Stamp', window: 'Retro window', player: 'Music player', cassette: 'Cassette', receipt: 'Receipt', calendar: 'Calendar', dday: 'D-day' };
+    const EL_NAMES = { polaroid: 'Polaroid', ticket: 'Movie ticket', stamp: 'Stamp', window: 'Retro window', player: 'Music player', cassette: 'Cassette', receipt: 'Receipt', calendar: 'Calendar', dday: 'D-day', fourcut: '4-Cut strip' };
     const EL_PHOTO = ['polaroid', 'ticket', 'stamp', 'window', 'player', 'cassette', 'photoslot'];
     function addElement(kind) {
       const { w, h } = PRESETS[W.preset];
       const layer = { id: uid++, kind, name: EL_NAMES[kind] || kind, img: null, caption: '', text: '', date: '', x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
+      if (kind === 'fourcut') { layer.frames = [null, null, null, null]; layer.frameColor = '#ffffff'; layer.captionColor = '#26202a'; layer.scale = 0.9; }
       W.layers.push(layer); selectLayer(layer.id); renderWall(); renderLayerList();
       toast(EL_NAMES[kind] + ' added');
     }
@@ -1360,7 +1475,7 @@
         const b = document.createElement('button');
         b.className = 'swatch'; b.style.background = c; b.type = 'button';
         b.setAttribute('aria-pressed', c === current); b.setAttribute('aria-label', 'Color ' + c);
-        b.addEventListener('click', () => onPick(c));
+        b.addEventListener('click', () => { pushRecent(c); onPick(c); });
         el.appendChild(b);
       });
     }
@@ -1373,7 +1488,7 @@
         b.style.background = `linear-gradient(135deg, ${g[0]}, ${g[1]})`;
         b.setAttribute('aria-pressed', String(!W.bg.gradCustom && W.bg.grad === i));
         b.setAttribute('aria-label', 'Gradient ' + (i + 1));
-        b.addEventListener('click', () => { W.bg.grad = i; W.bg.gradCustom = null; W.bg.type = 'gradient'; syncBgUI(); renderWall(); });
+        b.addEventListener('click', () => { pushRecent(g[1]); pushRecent(g[0]); W.bg.grad = i; W.bg.gradCustom = null; W.bg.type = 'gradient'; syncBgUI(); renderWall(); });
         gEl.appendChild(b);
       });
       swatchRow($('#pattern-swatches'), BG_COLORS, W.bg.patternColor, (c) => { W.bg.patternColor = c; renderWall(); });
@@ -1405,6 +1520,49 @@
     $('#grad-color-1').addEventListener('input', gradPick);
     $('#grad-color-2').addEventListener('input', gradPick);
     $('#pattern-base-custom').addEventListener('input', (e) => { W.bg.color = e.target.value; renderWall(); });
+
+    /* ================= recent colors (shared by every picker) ================= */
+    const RECENT_KEY = 'wallpaper_recent_colors_v1';
+    let recentColors = [];
+    try { recentColors = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); if (!Array.isArray(recentColors)) recentColors = []; } catch { recentColors = []; }
+    function pushRecent(c) {
+      if (!c) return;
+      c = String(c).toLowerCase();
+      recentColors = [c].concat(recentColors.filter(x => x !== c)).slice(0, 10);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(recentColors)); } catch { /* private mode */ }
+      renderRecents();
+    }
+    function renderRecents() {
+      document.querySelectorAll('.recent-chips').forEach(box => {
+        box.innerHTML = '';
+        const input = document.getElementById(box.dataset.for);
+        recentColors.forEach(c => {
+          const b = document.createElement('button');
+          b.className = 'swatch'; b.type = 'button'; b.style.background = c;
+          b.setAttribute('aria-label', 'Recent color ' + c);
+          b.addEventListener('click', () => {
+            if (!input) return;
+            input.value = c;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            pushRecent(c);
+          });
+          box.appendChild(b);
+        });
+        const wrap = box.closest('.recent-wrap');
+        if (wrap) wrap.style.display = recentColors.length ? '' : 'none';
+      });
+    }
+    ['bg-color-custom', 'grad-color-1', 'grad-color-2', 'pattern-color-custom', 'pattern-base-custom', 'sticker-color-custom', 'text-color', 'sel-color', 'fourcut-frame-color', 'fourcut-cap-color'].forEach(id => {
+      const input = document.getElementById(id);
+      if (!input) return;
+      const field = input.closest('.field') || input.parentElement;
+      const wrap = document.createElement('div');
+      wrap.className = 'recent-wrap';
+      wrap.innerHTML = '<span class="recent-label">Recent colors</span><div class="recent-chips" data-for="' + id + '"></div>';
+      field.appendChild(wrap);
+      input.addEventListener('change', () => pushRecent(input.value));
+    });
+    renderRecents();
     $$('#pattern-seg button').forEach(b => b.addEventListener('click', () => {
       W.bg.pattern = b.dataset.pattern;
       $$('#pattern-seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -1756,6 +1914,7 @@
           else if (l.kind === 'sticker') { b.sh = l.shape; b.c = l.color; if (l.pattern && l.pattern !== 'solid') b.p = l.pattern; }
           else if (l.kind === 'text') { b.t = l.text; b.fn = l.font; b.c = l.color; b.ol = l.outline || ''; b.fs = Math.round(l.fontSize); b.w = Math.round(l.w); b.h = Math.round(l.h); }
           else if (l.kind === 'film') { /* photos are never shared */ }
+          else if (l.kind === 'fourcut') { b.fc = l.frameColor || '#ffffff'; b.cc = l.captionColor || '#26202a'; if (l.caption) b.cp = l.caption; }
           else { if (l.caption) b.cp = l.caption; if (l.text) b.t = l.text; if (l.date) b.d = l.date; }
           return b;
         }),
@@ -1780,6 +1939,7 @@
         if (sv.k === 'sticker') { const sh = SHAPES[sv.sh] ? sv.sh : Object.keys(SHAPES)[0]; return Object.assign(base, { kind: 'sticker', name: SHAPES[sh].label + ' sticker', shape: sh, color: sv.c || '#ff5d7e', pattern: sv.p || 'solid' }); }
         if (sv.k === 'text') return Object.assign(base, { kind: 'text', name: 'Text: ' + (sv.t || ''), text: sv.t || '', font: sv.fn || 'Jua', color: sv.c || '#26202a', outline: sv.ol || null, fontSize: +sv.fs || 100, w: +sv.w || 300, h: +sv.h || 120 });
         if (sv.k === 'film') return Object.assign(base, { kind: 'film', name: 'Film strip', frames: [null, null, null] });
+        if (sv.k === 'fourcut') return Object.assign(base, { kind: 'fourcut', name: '4-Cut strip', frames: [null, null, null, null], frameColor: sv.fc || '#ffffff', captionColor: sv.cc || '#26202a', caption: sv.cp || '', text: '', date: '' });
         if (FRAME_DIMS[sv.k]) return Object.assign(base, { kind: sv.k, name: EL_NAMES[sv.k] || sv.k, img: null, caption: sv.cp || '', text: sv.t || '', date: sv.d || '' });
         return null;
       }).filter(Boolean);
