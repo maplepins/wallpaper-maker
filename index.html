@@ -382,6 +382,7 @@
             </div>
             <div class="row" role="group" aria-label="Add element">
               <button data-addel="fourcut" style="flex:1">4-Cut strip (4 photos)</button>
+              <button data-addel="cd" style="flex:1">CD</button>
             </div>
             <p class="desc" style="margin-top:6px">The 4-Cut strip lives on your wallpaper: select it, then add its 4 photos from the Selected element panel.</p>
             <div class="row" style="margin-top:8px">
@@ -540,6 +541,12 @@
                   </div>
                 </div>
                 <p class="desc" style="margin-top:6px">Write the caption in "Text for selected element" under Frames &amp; extras.</p>
+              </div>
+            </div>
+            <div class="row hidden" id="sel-accent-row">
+              <div class="field" style="flex:1">
+                <label>Accent color</label>
+                <input type="color" id="sel-accent" class="color-big" value="#ff5d7e" aria-label="Selected element accent color" />
               </div>
             </div>
             <div class="row hidden" id="sel-color-row">
@@ -810,7 +817,7 @@
     const STICKER_COLORS = ['#ff5d7e', '#f5a623', '#17b890', '#3d9be9', '#9b6dd6', '#ffffff', '#26202a'];
 
     function sel() { return W.layers.find(l => l.id === W.selectedId) || null; }
-    const FRAME_DIMS = { polaroid: [620, 760], ticket: [1000, 420], stamp: [560, 680], window: [860, 640], player: [980, 360], cassette: [920, 580], receipt: [460, 900], calendar: [760, 640], dday: [760, 300] };
+    const FRAME_DIMS = { polaroid: [620, 760], ticket: [1000, 420], stamp: [560, 680], window: [860, 640], player: [980, 360], cassette: [920, 580], receipt: [460, 900], calendar: [760, 640], dday: [760, 300], cd: [760, 760] };
     function layerDims(l) {
       const s = l.scale;
       if (FRAME_DIMS[l.kind]) return { w: FRAME_DIMS[l.kind][0] * s, h: FRAME_DIMS[l.kind][1] * s };
@@ -966,44 +973,44 @@
     }
     function drawPolaroid(g, l) {
       const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
-      g.fillStyle = '#ffffff'; g.fillRect(x0, y0, w, h);
+      g.fillStyle = l.color || '#ffffff'; g.fillRect(x0, y0, w, h);
       const m = w * 0.07, capH = h * 0.17;
       drawPhotoSlot(g, l.img, x0 + m, y0 + m, w - m * 2, h - m * 2 - capH);
       if (l.caption) {
-        g.fillStyle = '#3a3440'; g.font = Math.round(h * 0.052) + 'px Gaegu, cursive';
+        g.fillStyle = l.accent || '#3a3440'; g.font = Math.round(h * 0.052) + 'px Gaegu, cursive';
         g.textAlign = 'center'; g.textBaseline = 'middle';
         g.fillText(l.caption, 0, y0 + h - capH / 2 - m * 0.2);
       }
     }
     function drawTicket(g, l) {
       const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
-      g.fillStyle = '#f6e7c8'; rrPath(g, x0, y0, w, h, h * 0.06); g.fill();
+      g.fillStyle = l.color || '#f6e7c8'; rrPath(g, x0, y0, w, h, h * 0.06); g.fill();
       const m = h * 0.11, ph = h - m * 2;
       drawPhotoSlot(g, l.img, x0 + m, y0 + m, ph, ph);
       const stubX = x0 + w * 0.74;
       g.strokeStyle = 'rgba(0,0,0,0.35)'; g.lineWidth = Math.max(2, h * 0.006); g.setLineDash([h * 0.03, h * 0.03]);
       g.beginPath(); g.moveTo(stubX, y0 + h * 0.06); g.lineTo(stubX, y0 + h * 0.94); g.stroke(); g.setLineDash([]);
-      g.fillStyle = '#40382c'; g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillStyle = l.accent || '#40382c'; g.textAlign = 'left'; g.textBaseline = 'middle';
       g.font = 'bold ' + Math.round(h * 0.11) + 'px sans-serif';
       g.fillText(l.caption || 'MOVIE NIGHT', x0 + m * 2 + ph, y0 + h * 0.36);
-      g.font = Math.round(h * 0.062) + 'px sans-serif'; g.fillStyle = 'rgba(64,56,44,0.66)';
+      g.font = Math.round(h * 0.062) + 'px sans-serif'; g.fillStyle = 'rgba(0,0,0,0.55)';
       g.fillText('CINEMA - ONE TICKET', x0 + m * 2 + ph, y0 + h * 0.55);
       g.fillText('NO. 0013', x0 + m * 2 + ph, y0 + h * 0.7);
       let seed = (l.id * 7919) % 233280;
       const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
-      g.fillStyle = '#2c2618';
+      g.fillStyle = l.accent || '#40382c';
       let bx = stubX + w * 0.045;
       const bTop = y0 + h * 0.16, bH = h * 0.4;
       while (bx < x0 + w - w * 0.05) { const bw = 2 + rnd() * h * 0.016; g.fillRect(bx, bTop, bw, bH); bx += bw + 2 + rnd() * h * 0.014; }
       g.save();
       g.translate(stubX + w * 0.115, 0); g.rotate(-Math.PI / 2);
-      g.font = 'bold ' + Math.round(h * 0.055) + 'px sans-serif'; g.fillStyle = 'rgba(64,56,44,0.7)';
+      g.font = 'bold ' + Math.round(h * 0.055) + 'px sans-serif'; g.fillStyle = 'rgba(0,0,0,0.6)';
       g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('ADMIT ONE', 0, 0);
       g.restore();
     }
     function drawStamp(g, l) {
       const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
-      g.fillStyle = '#ffffff'; g.fillRect(x0, y0, w, h);
+      g.fillStyle = l.color || '#ffffff'; g.fillRect(x0, y0, w, h);
       const m = w * 0.1;
       g.fillStyle = 'rgba(0,0,0,0.16)';
       const r = w * 0.017, step = w * 0.052;
@@ -1020,10 +1027,11 @@
     function drawWindow(g, l) {
       const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
       const barH = h * 0.13;
-      g.fillStyle = '#eef1f6'; rrPath(g, x0, y0, w, h, h * 0.03); g.fill();
+      g.fillStyle = l.color || '#eef1f6'; rrPath(g, x0, y0, w, h, h * 0.03); g.fill();
       g.save(); rrPath(g, x0, y0, w, h, h * 0.03); g.clip();
+      g.fillStyle = l.accent || '#5b83d6'; g.fillRect(x0, y0, w, barH);
       const grad = g.createLinearGradient(0, y0, 0, y0 + barH);
-      grad.addColorStop(0, '#8fb4f0'); grad.addColorStop(1, '#5b83d6');
+      grad.addColorStop(0, 'rgba(255,255,255,0.38)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
       g.fillStyle = grad; g.fillRect(x0, y0, w, barH);
       g.restore();
       g.fillStyle = '#ffffff'; g.font = 'bold ' + Math.round(barH * 0.44) + 'px sans-serif';
@@ -1038,7 +1046,7 @@
     }
     function drawPlayer(g, l) {
       const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
-      g.fillStyle = '#211d28'; rrPath(g, x0, y0, w, h, h * 0.09); g.fill();
+      g.fillStyle = l.color || '#211d28'; rrPath(g, x0, y0, w, h, h * 0.09); g.fill();
       const m = h * 0.13, alb = h - m * 2;
       drawPhotoSlot(g, l.img, x0 + m, y0 + m, alb, alb);
       const tx = x0 + m * 2 + alb;
@@ -1050,12 +1058,12 @@
       g.fillText(lines[1] || 'Unknown artist', tx, y0 + h * 0.47);
       const pw = w - (tx - x0) - m, py = y0 + h * 0.64;
       g.fillStyle = 'rgba(255,255,255,0.22)'; rrPath(g, tx, py, pw, h * 0.028, h * 0.014); g.fill();
-      g.fillStyle = '#ff5d7e'; rrPath(g, tx, py, pw * 0.42, h * 0.028, h * 0.014); g.fill();
+      g.fillStyle = l.accent || '#ff5d7e'; rrPath(g, tx, py, pw * 0.42, h * 0.028, h * 0.014); g.fill();
       g.beginPath(); g.arc(tx + pw * 0.42, py + h * 0.014, h * 0.035, 0, Math.PI * 2); g.fillStyle = '#ffffff'; g.fill();
       const cy = y0 + h * 0.83, cx = tx + pw / 2, s = h * 0.075;
       g.fillStyle = '#ffffff';
       g.beginPath(); g.arc(cx, cy, s * 1.25, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#211d28';
+      g.fillStyle = l.color || '#211d28';
       g.beginPath(); g.moveTo(cx - s * 0.32, cy - s * 0.5); g.lineTo(cx + s * 0.55, cy); g.lineTo(cx - s * 0.32, cy + s * 0.5); g.closePath(); g.fill();
       g.fillStyle = '#ffffff';
       g.beginPath(); g.moveTo(cx - s * 2.6, cy); g.lineTo(cx - s * 1.7, cy - s * 0.55); g.lineTo(cx - s * 1.7, cy + s * 0.55); g.closePath(); g.fill();
@@ -1065,8 +1073,8 @@
     }
     function drawCassette(g, l) {
       const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
-      g.fillStyle = '#e9dfc9'; rrPath(g, x0, y0, w, h, h * 0.06); g.fill();
-      g.fillStyle = '#d4574e'; g.fillRect(x0, y0 + h * 0.06, w, h * 0.07);
+      g.fillStyle = l.color || '#e9dfc9'; rrPath(g, x0, y0, w, h, h * 0.06); g.fill();
+      g.fillStyle = l.accent || '#d4574e'; g.fillRect(x0, y0 + h * 0.06, w, h * 0.07);
       const m = w * 0.055;
       drawPhotoSlot(g, l.img, x0 + m, y0 + h * 0.19, w - m * 2, h * 0.4);
       const wy = y0 + h * 0.68, wh = h * 0.2;
@@ -1088,16 +1096,16 @@
       g.moveTo(x0, y0); g.lineTo(x0 + w, y0); g.lineTo(x0 + w, y0 + h - jag);
       for (let i = 1; i <= teeth; i++) g.lineTo(x0 + w - (i - 0.5) * (w / teeth), y0 + h - (i % 2 ? 0 : jag));
       g.lineTo(x0, y0 + h - jag); g.closePath();
-      g.fillStyle = '#ffffff'; g.fill();
-      g.fillStyle = '#2c2830'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = l.color || '#ffffff'; g.fill();
+      g.fillStyle = l.accent || '#2c2830'; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.font = 'bold ' + Math.round(h * 0.032) + 'px monospace';
       g.fillText('RECEIPT', 0, y0 + h * 0.055);
-      g.font = Math.round(h * 0.02) + 'px monospace'; g.fillStyle = 'rgba(44,40,48,0.6)';
+      g.font = Math.round(h * 0.02) + 'px monospace'; g.fillStyle = 'rgba(0,0,0,0.5)';
       g.fillText(new Date().toLocaleDateString('en-US'), 0, y0 + h * 0.095);
       g.strokeStyle = 'rgba(44,40,48,0.4)'; g.lineWidth = Math.max(1.5, h * 0.0016); g.setLineDash([w * 0.02, w * 0.016]);
       g.beginPath(); g.moveTo(x0 + w * 0.09, y0 + h * 0.125); g.lineTo(x0 + w * 0.91, y0 + h * 0.125); g.stroke(); g.setLineDash([]);
       const lines = (l.text || '').split('\n').filter(t => t.trim() !== '');
-      g.textAlign = 'left'; g.fillStyle = '#2c2830';
+      g.textAlign = 'left'; g.fillStyle = l.accent || '#2c2830';
       g.font = Math.round(h * 0.026) + 'px monospace';
       const shown = lines.length ? lines : ['Your memo here', 'Add lines in the text box'];
       shown.slice(0, 16).forEach((t, i) => g.fillText(t.slice(0, 26), x0 + w * 0.1, y0 + h * (0.18 + i * 0.045)));
@@ -1106,9 +1114,9 @@
     }
     function drawCalendar(g, l) {
       const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
-      g.fillStyle = '#ffffff'; rrPath(g, x0, y0, w, h, h * 0.04); g.fill();
+      g.fillStyle = l.color || '#ffffff'; rrPath(g, x0, y0, w, h, h * 0.04); g.fill();
       g.save(); rrPath(g, x0, y0, w, h, h * 0.04); g.clip();
-      g.fillStyle = '#ff5d7e'; g.fillRect(x0, y0, w, h * 0.16);
+      g.fillStyle = l.accent || '#ff5d7e'; g.fillRect(x0, y0, w, h * 0.16);
       g.restore();
       const now = new Date();
       const year = now.getFullYear(), month = now.getMonth();
@@ -1130,7 +1138,7 @@
         const idx = first + day - 1, col = idx % 7, row = Math.floor(idx / 7);
         const cxp = gx + cw * (col + 0.5), cyp = gy + ch * (row + 1.1);
         if (day === now.getDate()) {
-          g.fillStyle = '#ff5d7e'; g.beginPath(); g.arc(cxp, cyp, ch * 0.34, 0, Math.PI * 2); g.fill();
+          g.fillStyle = l.accent || '#ff5d7e'; g.beginPath(); g.arc(cxp, cyp, ch * 0.34, 0, Math.PI * 2); g.fill();
           g.fillStyle = '#ffffff';
         } else g.fillStyle = col === 0 ? '#e5484d' : '#26202a';
         g.fillText(String(day), cxp, cyp);
@@ -1138,7 +1146,7 @@
     }
     function drawDday(g, l) {
       const d = layerDims(l), w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
-      g.fillStyle = '#26202a'; rrPath(g, x0, y0, w, h, h * 0.08); g.fill();
+      g.fillStyle = l.color || '#26202a'; rrPath(g, x0, y0, w, h, h * 0.08); g.fill();
       g.textAlign = 'center'; g.textBaseline = 'middle';
       let big = 'D-?', sub = l.caption || 'Set a date below';
       if (l.date) {
@@ -1148,10 +1156,43 @@
         big = diff === 0 ? 'D-DAY' : diff > 0 ? 'D-' + diff : 'D+' + (-diff);
         sub = l.caption || l.date;
       }
-      g.fillStyle = '#ffffff'; g.font = 'bold ' + Math.round(h * 0.42) + 'px sans-serif';
+      g.fillStyle = l.accent || '#ffffff'; g.font = 'bold ' + Math.round(h * 0.42) + 'px sans-serif';
       g.fillText(big, 0, y0 + h * 0.42);
-      g.fillStyle = 'rgba(255,255,255,0.6)'; g.font = Math.round(h * 0.11) + 'px sans-serif';
-      g.fillText(sub, 0, y0 + h * 0.78);
+      g.fillStyle = l.accent || '#ffffff'; g.globalAlpha *= 0.6; g.font = Math.round(h * 0.11) + 'px sans-serif';
+      g.fillText(sub, 0, y0 + h * 0.78); g.globalAlpha /= 0.6;
+    }
+    function drawCD(g, l) {
+      const d = layerDims(l), w = d.w, R = w / 2;
+      g.save();
+      g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.clip();
+      if (l.img) drawCoverImg(g, l.img, -R, -R, w, w);
+      else { g.fillStyle = l.color || '#ececf2'; g.fillRect(-R, -R, w, w); }
+      if (g.createConicGradient) {
+        const cg = g.createConicGradient(0.6, 0, 0);
+        cg.addColorStop(0, 'rgba(255,120,160,0.16)');
+        cg.addColorStop(0.25, 'rgba(255,220,120,0.16)');
+        cg.addColorStop(0.5, 'rgba(120,255,200,0.16)');
+        cg.addColorStop(0.75, 'rgba(120,180,255,0.16)');
+        cg.addColorStop(1, 'rgba(255,120,160,0.16)');
+        g.fillStyle = cg; g.fillRect(-R, -R, w, w);
+      }
+      g.strokeStyle = 'rgba(0,0,0,0.07)'; g.lineWidth = Math.max(1.5, w * 0.003);
+      [0.92, 0.8, 0.62].forEach(f => { g.beginPath(); g.arc(0, 0, R * f, 0, Math.PI * 2); g.stroke(); });
+      g.restore();
+      g.strokeStyle = l.accent || '#ff5d7e'; g.lineWidth = w * 0.012;
+      g.beginPath(); g.arc(0, 0, R * 0.34, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = '#d8d8de'; g.beginPath(); g.arc(0, 0, R * 0.155, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.18)'; g.lineWidth = Math.max(1.5, w * 0.003);
+      g.beginPath(); g.arc(0, 0, R * 0.155, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = '#f4f4f6'; g.beginPath(); g.arc(0, 0, R * 0.09, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.22)'; g.lineWidth = Math.max(2, w * 0.004);
+      g.beginPath(); g.arc(0, 0, R - g.lineWidth / 2, 0, Math.PI * 2); g.stroke();
+      if (l.caption) {
+        g.fillStyle = l.accent || '#ff5d7e';
+        g.font = 'bold ' + Math.round(w * 0.045) + 'px sans-serif';
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText(l.caption, 0, R * 0.68, w * 0.7);
+      }
     }
     function drawFrameEl(g, l) {
       if (l.kind === 'polaroid') drawPolaroid(g, l);
@@ -1163,6 +1204,7 @@
       else if (l.kind === 'receipt') drawReceipt(g, l);
       else if (l.kind === 'calendar') drawCalendar(g, l);
       else if (l.kind === 'dday') drawDday(g, l);
+      else if (l.kind === 'cd') drawCD(g, l);
     }
     function star4(g, x, y, r) {
       g.beginPath();
@@ -1370,6 +1412,9 @@
       const hasColor = typeof s.color === 'string';
       $('#sel-color-row').classList.toggle('hidden', !hasColor);
       if (hasColor) $('#sel-color').value = s.color;
+      const hasAccent = typeof s.accent === 'string';
+      $('#sel-accent-row').classList.toggle('hidden', !hasAccent);
+      if (hasAccent) $('#sel-accent').value = s.accent;
       const isTape = s.kind === 'sticker' && s.shape === 'tape';
       $('#tape-opts').classList.toggle('hidden', !isTape);
       if (isTape) document.querySelectorAll('[data-tapepat]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tapepat === (s.pattern || 'solid'))));
@@ -1425,6 +1470,7 @@
       });
     }
     $('#sel-color').addEventListener('input', (e) => { const s = sel(); if (s && typeof s.color === 'string') { s.color = e.target.value; renderWall(); } });
+    $('#sel-accent').addEventListener('input', (e) => { const s = sel(); if (s && typeof s.accent === 'string') { s.accent = e.target.value; renderWall(); } });
     for (let i = 0; i < 4; i++) {
       $('#fourcut-file-' + i).addEventListener('change', async (e) => {
         const f = e.target.files[0]; e.target.value = '';
@@ -1443,12 +1489,15 @@
       const s = sel(); if (!s) return;
       s.pattern = b.dataset.tapepat; syncSelPanel(); renderWall();
     }));
-    const EL_NAMES = { polaroid: 'Polaroid', ticket: 'Movie ticket', stamp: 'Stamp', window: 'Retro window', player: 'Music player', cassette: 'Cassette', receipt: 'Receipt', calendar: 'Calendar', dday: 'D-day', fourcut: '4-Cut strip' };
-    const EL_PHOTO = ['polaroid', 'ticket', 'stamp', 'window', 'player', 'cassette', 'photoslot'];
+    const EL_NAMES = { polaroid: 'Polaroid', ticket: 'Movie ticket', stamp: 'Stamp', window: 'Retro window', player: 'Music player', cassette: 'Cassette', receipt: 'Receipt', calendar: 'Calendar', dday: 'D-day', fourcut: '4-Cut strip', cd: 'CD' };
+    const EL_COLOR_DEFAULTS = { polaroid: ['#ffffff', '#3a3440'], ticket: ['#f6e7c8', '#40382c'], stamp: ['#ffffff', null], window: ['#eef1f6', '#5b83d6'], player: ['#211d28', '#ff5d7e'], cassette: ['#e9dfc9', '#d4574e'], receipt: ['#ffffff', '#2c2830'], calendar: ['#ffffff', '#ff5d7e'], dday: ['#26202a', '#ffffff'], cd: ['#ececf2', '#ff5d7e'] };
+    const EL_PHOTO = ['polaroid', 'ticket', 'stamp', 'window', 'player', 'cassette', 'photoslot', 'cd'];
     function addElement(kind) {
       const { w, h } = PRESETS[W.preset];
       const layer = { id: uid++, kind, name: EL_NAMES[kind] || kind, img: null, caption: '', text: '', date: '', x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
       if (kind === 'fourcut') { layer.frames = [null, null, null, null]; layer.frameColor = '#ffffff'; layer.captionColor = '#26202a'; layer.scale = 0.9; }
+      const ecd = EL_COLOR_DEFAULTS[kind];
+      if (ecd) { layer.color = ecd[0]; if (ecd[1]) layer.accent = ecd[1]; }
       W.layers.push(layer); selectLayer(layer.id); renderWall(); renderLayerList();
       toast(EL_NAMES[kind] + ' added');
     }
@@ -1631,7 +1680,7 @@
         if (wrap) wrap.style.display = recentColors.length ? '' : 'none';
       });
     }
-    ['bg-color-custom', 'grad-color-1', 'grad-color-2', 'pattern-color-custom', 'pattern-base-custom', 'sticker-color-custom', 'text-color', 'sel-color', 'fourcut-frame-color', 'fourcut-cap-color'].forEach(id => {
+    ['bg-color-custom', 'grad-color-1', 'grad-color-2', 'pattern-color-custom', 'pattern-base-custom', 'sticker-color-custom', 'text-color', 'sel-color', 'sel-accent', 'fourcut-frame-color', 'fourcut-cap-color'].forEach(id => {
       const input = document.getElementById(id);
       if (!input) return;
       const field = input.closest('.field') || input.parentElement;
@@ -1994,7 +2043,7 @@
           else if (l.kind === 'text') { b.t = l.text; b.fn = l.font; b.c = l.color; b.ol = l.outline || ''; b.fs = Math.round(l.fontSize); b.w = Math.round(l.w); b.h = Math.round(l.h); }
           else if (l.kind === 'film') { if (l.variant && l.variant !== 'classic') b.fv = l.variant; /* photos are never shared */ }
           else if (l.kind === 'fourcut') { b.fc = l.frameColor || '#ffffff'; b.cc = l.captionColor || '#26202a'; if (l.caption) b.cp = l.caption; }
-          else { if (l.caption) b.cp = l.caption; if (l.text) b.t = l.text; if (l.date) b.d = l.date; }
+          else { if (l.caption) b.cp = l.caption; if (l.text) b.t = l.text; if (l.date) b.d = l.date; if (l.color) b.co = l.color; if (l.accent) b.ac = l.accent; }
           return b;
         }),
       };
@@ -2019,7 +2068,7 @@
         if (sv.k === 'text') return Object.assign(base, { kind: 'text', name: 'Text: ' + (sv.t || ''), text: sv.t || '', font: sv.fn || 'Jua', color: sv.c || '#26202a', outline: sv.ol || null, fontSize: +sv.fs || 100, w: +sv.w || 300, h: +sv.h || 120 });
         if (sv.k === 'film') return Object.assign(base, { kind: 'film', name: 'Film strip', frames: [null, null, null], variant: sv.fv || 'classic' });
         if (sv.k === 'fourcut') return Object.assign(base, { kind: 'fourcut', name: '4-Cut strip', frames: [null, null, null, null], frameColor: sv.fc || '#ffffff', captionColor: sv.cc || '#26202a', caption: sv.cp || '', text: '', date: '' });
-        if (FRAME_DIMS[sv.k]) return Object.assign(base, { kind: sv.k, name: EL_NAMES[sv.k] || sv.k, img: null, caption: sv.cp || '', text: sv.t || '', date: sv.d || '' });
+        if (FRAME_DIMS[sv.k]) return Object.assign(base, { kind: sv.k, name: EL_NAMES[sv.k] || sv.k, img: null, caption: sv.cp || '', text: sv.t || '', date: sv.d || '', color: sv.co || (EL_COLOR_DEFAULTS[sv.k] || [])[0], accent: sv.ac || (EL_COLOR_DEFAULTS[sv.k] || [])[1] });
         return null;
       }).filter(Boolean);
       W.selectedId = null;
