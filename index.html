@@ -346,6 +346,14 @@
                 <button data-effect="sparkle" aria-pressed="false">Sparkle</button>
                 <button data-effect="both" aria-pressed="false">Both</button>
               </div>
+              <div class="row" style="margin-top:8px; align-items:center">
+                <span class="desc" style="flex:0 0 auto">Sparkle intensity</span>
+                <div class="row" role="group" aria-label="Sparkle intensity" style="flex:1">
+                  <button data-fxlevel="1" aria-pressed="false">Light</button>
+                  <button data-fxlevel="2" aria-pressed="true">Medium</button>
+                  <button data-fxlevel="3" aria-pressed="false">Strong</button>
+                </div>
+              </div>
               <div class="row" style="margin-top:8px">
                 <button class="btn" id="btn-video" style="flex:1">Export animated video (4 sec)</button>
               </div>
@@ -815,6 +823,7 @@
       selectedId: null,
       stickerColor: '#ff5d7e',
       effect: 'none',
+      fxLevel: 2,
     };
     let uid = 1;
     const GRADIENTS = [
@@ -1224,23 +1233,25 @@
     }
     let effectCache = { key: '', grainCv: null, stars: [] };
     let animTime = 0, animRunning = false, lastFxDraw = 0;
+    const FX_LEVELS = [{ n: 0.45, r: 0.8, a: 0.55 }, { n: 1, r: 1, a: 0.85 }, { n: 1.9, r: 1.3, a: 1 }];
     function buildFxCache(w, h) {
-      const key = W.effect + '|' + w + 'x' + h;
+      const FXL = FX_LEVELS[(W.fxLevel || 2) - 1];
+      const key = W.effect + '|' + (W.fxLevel || 2) + '|' + w + 'x' + h;
       if (effectCache.key === key && (effectCache.grainCv || effectCache.stars.length)) return;
       const cache = { key, grainCv: null, stars: [] };
       if (W.effect === 'grain' || W.effect === 'both') {
         const c = document.createElement('canvas'); c.width = w + 16; c.height = h + 16;
         const g = c.getContext('2d');
-        const n = Math.floor(w * h / 900);
+        const n = Math.floor(w * h / 600);
         for (let i = 0; i < n; i++) {
-          g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
-          g.fillRect(Math.random() * c.width, Math.random() * c.height, 2.2, 2.2);
+          g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.10)';
+          g.fillRect(Math.random() * c.width, Math.random() * c.height, 2.6, 2.6);
         }
         cache.grainCv = c;
       }
       if (W.effect === 'sparkle' || W.effect === 'both') {
-        const n = Math.floor(w / 90);
-        for (let i = 0; i < n; i++) cache.stars.push({ x: Math.random() * w, y: Math.random() * h, r: 4 + Math.random() * 9, ph: Math.random() * Math.PI * 2, sp: 0.6 + Math.random() * 1.4 });
+        const n = Math.floor(w / 90 * FXL.n);
+        for (let i = 0; i < n; i++) cache.stars.push({ x: Math.random() * w, y: Math.random() * h, r: (4 + Math.random() * 9) * FXL.r, ph: Math.random() * Math.PI * 2, sp: 0.6 + Math.random() * 1.4 });
       }
       effectCache = cache;
     }
@@ -1253,9 +1264,10 @@
         ctx.drawImage(effectCache.grainCv, GRAIN_STEPS[step] - 8, GRAIN_STEPS[(step + 3) % 8] - 8);
       }
       if (effectCache.stars.length) {
+        const lvlA = FX_LEVELS[(W.fxLevel || 2) - 1].a;
         for (const s of effectCache.stars) {
           const tw = 0.5 + 0.5 * Math.sin(animTime * 0.001 * s.sp + s.ph);
-          ctx.fillStyle = 'rgba(255,255,255,' + (0.2 + 0.8 * tw).toFixed(3) + ')';
+          ctx.fillStyle = 'rgba(255,255,255,' + ((0.2 + 0.8 * tw) * lvlA).toFixed(3) + ')';
           star4(ctx, s.x, s.y, s.r * (0.8 + 0.3 * tw));
         }
       }
@@ -1592,7 +1604,7 @@
       return {
         preset: W.preset,
         bg: { ...W.bg, grad: W.bg.grad ? [...W.bg.grad] : W.bg.grad, gradCustom: W.bg.gradCustom ? [...W.bg.gradCustom] : null },
-        effect: W.effect, stickerColor: W.stickerColor, filmDef: filmVariantDefault,
+        effect: W.effect, fxLevel: W.fxLevel || 2, stickerColor: W.stickerColor, filmDef: filmVariantDefault,
         layers: W.layers.map(l => ({ ...l, frames: l.frames ? [...l.frames] : l.frames })),
       };
     }
@@ -1605,7 +1617,7 @@
     function restoreState(s) {
       W.preset = s.preset;
       W.bg = { ...s.bg, grad: s.bg.grad ? [...s.bg.grad] : s.bg.grad, gradCustom: s.bg.gradCustom ? [...s.bg.gradCustom] : null };
-      W.effect = s.effect; W.stickerColor = s.stickerColor; filmVariantDefault = s.filmDef;
+      W.effect = s.effect; W.fxLevel = s.fxLevel || 2; syncFxSegs(); W.stickerColor = s.stickerColor; filmVariantDefault = s.filmDef;
       W.layers = s.layers.map(l => ({ ...l, frames: l.frames ? [...l.frames] : l.frames }));
       const p = PRESETS[W.preset];
       cv.width = p.w; cv.height = p.h;
@@ -1687,6 +1699,12 @@
       W.effect = b.dataset.effect;
       document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       renderWall(); syncAnim();
+    }));
+    function syncFxSegs() { document.querySelectorAll('[data-fxlevel]').forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.fxlevel === (W.fxLevel || 2)))); }
+    document.querySelectorAll('[data-fxlevel]').forEach(b => b.addEventListener('click', () => {
+      pushHistory();
+      W.fxLevel = +b.dataset.fxlevel;
+      syncFxSegs(); renderWall();
     }));
     function syncElPanel(s) {
       if (!s) return;
@@ -2210,7 +2228,7 @@
       return {
         v: 1, preset: W.preset,
         bg: { type: W.bg.type === 'photo' ? 'color' : W.bg.type, color: W.bg.color, grad: W.bg.grad, gc: W.bg.gradCustom || null, pattern: W.bg.pattern, patternColor: W.bg.patternColor },
-        effect: W.effect, stickerColor: W.stickerColor,
+        effect: W.effect, fxi: W.fxLevel || 2, stickerColor: W.stickerColor,
         layers: W.layers.map(l => {
           const b = { k: l.kind, x: Math.round(l.x), y: Math.round(l.y), s: Math.round(l.scale * 1000) / 1000, r: Math.round(l.rot * 10) / 10, o: l.opacity, f: l.flip ? 1 : 0 };
           if (l.kind === 'photo') { b.k = 'photoslot'; b.bw = l.img.width; b.bh = l.img.height; }
@@ -2236,6 +2254,7 @@
       const b = d.bg || {};
       W.bg = { type: ['color', 'gradient', 'pattern'].indexOf(b.type) >= 0 ? b.type : 'color', color: b.color || '#ffe3ea', grad: b.grad || 0, gradCustom: Array.isArray(b.gc) && b.gc.length === 2 ? b.gc : null, pattern: b.pattern || 'dots', patternColor: b.patternColor || '#fff0f3', img: null };
       W.effect = ['none', 'grain', 'sparkle', 'both'].indexOf(d.effect) >= 0 ? d.effect : 'none';
+      W.fxLevel = [1, 2, 3].indexOf(d.fxi) >= 0 ? d.fxi : 2; syncFxSegs();
       document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.effect === W.effect)));
       if (d.stickerColor) W.stickerColor = d.stickerColor;
       W.layers = d.layers.map(sv => {
