@@ -407,6 +407,13 @@
             <p class="desc">Add a film strip, select it on the canvas, then put a photo in each frame.</p>
             <div class="row"><button class="btn primary block" id="btn-add-film">Add film strip</button></div>
             <div class="row" style="margin-top:8px">
+              <div class="seg" role="group" aria-label="Film style">
+                <button data-filmvariant="classic" aria-pressed="true">Classic</button>
+                <button data-filmvariant="end" aria-pressed="false">Film end</button>
+              </div>
+            </div>
+            <p class="desc" style="margin-top:6px">Two styles: the straight strip, or a strip whose right end is rounded like the end of a film roll. Switching also changes the film strip selected on the canvas.</p>
+            <div class="row" style="margin-top:8px">
               <label class="btn" style="flex:1" for="film-file-0">Frame 1 photo</label>
               <label class="btn" style="flex:1" for="film-file-1">Frame 2 photo</label>
               <label class="btn" style="flex:1" for="film-file-2">Frame 3 photo</label>
@@ -498,6 +505,15 @@
               <div class="field">
                 <label for="sel-opacity">Opacity <span class="val" id="sel-opacity-val"></span></label>
                 <input type="range" id="sel-opacity" min="10" max="100" value="100" />
+              </div>
+            </div>
+            <div class="row hidden" id="film-variant-row">
+              <div class="field">
+                <label>Film style</label>
+                <div class="seg" role="group" aria-label="Selected film style">
+                  <button data-selfilmvariant="classic" aria-pressed="true">Classic</button>
+                  <button data-selfilmvariant="end" aria-pressed="false">Film end</button>
+                </div>
               </div>
             </div>
             <div class="row hidden" id="fourcut-opts">
@@ -774,6 +790,7 @@
       ipad:   { w: 2752, h: 2064, label: 'iPad 4:3 · 2752 × 2064 px · Lossless PNG' },
     };
     const cv = $('#cv'), ctx = cv.getContext('2d');
+    let filmVariantDefault = 'classic';
     const W = {
       preset: 'laptop',
       bg: { type: 'color', color: '#ffe3ea', grad: 0, gradCustom: null, pattern: 'dots', patternColor: '#fff0f3', img: null },
@@ -901,17 +918,30 @@
       const d = layerDims(l);
       const w = d.w, h = d.h, x0 = -w / 2, y0 = -h / 2;
       g.save();
+      const isEnd = l.variant === 'end';
+      const bodyW = isEnd ? w - h / 2 : w;
       g.fillStyle = '#17141a';
-      rrPath(g, x0, y0, w, h, h * 0.045); g.fill();
+      if (isEnd) {
+        const capCx = x0 + bodyW, capR = h / 2, cr = h * 0.045;
+        g.beginPath();
+        g.moveTo(x0 + cr, y0);
+        g.lineTo(capCx, y0);
+        g.arc(capCx, y0 + capR, capR, -Math.PI / 2, Math.PI / 2);
+        g.lineTo(x0 + cr, y0 + h);
+        g.quadraticCurveTo(x0, y0 + h, x0, y0 + h - cr);
+        g.lineTo(x0, y0 + cr);
+        g.quadraticCurveTo(x0, y0, x0 + cr, y0);
+        g.closePath(); g.fill();
+      } else { rrPath(g, x0, y0, w, h, h * 0.045); g.fill(); }
       const holeW = w * 0.026, holeH = h * 0.088, band = h * 0.052;
       g.fillStyle = 'rgba(255,255,255,0.92)';
-      const n = Math.max(6, Math.floor(w / (holeW * 2.1)));
+      const n = Math.max(6, Math.floor(bodyW / (holeW * 2.1)));
       for (let i = 0; i < n; i++) {
-        const hx = x0 + (i + 0.5) * (w / n) - holeW / 2;
+        const hx = x0 + (i + 0.5) * (bodyW / n) - holeW / 2;
         rrPath(g, hx, y0 + band, holeW, holeH, holeH * 0.32); g.fill();
         rrPath(g, hx, y0 + h - band - holeH, holeW, holeH, holeH * 0.32); g.fill();
       }
-      const pad = w * 0.022, gap = w * 0.016, fy = y0 + h * 0.185, fh = h * 0.63, fw = (w - pad * 2 - gap * 2) / 3;
+      const pad = w * 0.022, gap = w * 0.016, fy = y0 + h * 0.185, fh = h * 0.63, fw = (bodyW - pad * 2 - gap * 2) / 3;
       for (let i = 0; i < 3; i++) {
         const fx = x0 + pad + i * (fw + gap);
         const img = l.frames && l.frames[i];
@@ -1331,6 +1361,9 @@
       const s = sel();
       $('#sel-card').classList.toggle('hidden', !s);
       if (!s) return;
+      const isFilm = s.kind === 'film';
+      $('#film-variant-row').classList.toggle('hidden', !isFilm);
+      if (isFilm) syncFilmSegs();
       const isFour = s.kind === 'fourcut';
       $('#fourcut-opts').classList.toggle('hidden', !isFour);
       if (isFour) { $('#fourcut-frame-color').value = s.frameColor || '#ffffff'; $('#fourcut-cap-color').value = s.captionColor || '#26202a'; }
@@ -1454,7 +1487,7 @@
     }
     $('#btn-add-film').addEventListener('click', () => {
       const { w, h } = PRESETS[W.preset];
-      const layer = { id: uid++, kind: 'film', name: 'Film strip', frames: [null, null, null], x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
+      const layer = { id: uid++, kind: 'film', name: 'Film strip', frames: [null, null, null], variant: filmVariantDefault, x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
       W.layers.push(layer); selectLayer(layer.id); renderWall(); renderLayerList();
       toast('Film strip added. Put a photo in each frame');
     });
@@ -1470,6 +1503,20 @@
         setBusy(false);
       });
     });
+    function syncFilmSegs() {
+      const s = sel();
+      const cur = (s && s.kind === 'film') ? (s.variant || 'classic') : filmVariantDefault;
+      $$('[data-filmvariant]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filmvariant === cur)));
+      $$('[data-selfilmvariant]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.selfilmvariant === cur)));
+    }
+    function setFilmVariant(v) {
+      filmVariantDefault = v;
+      const s = sel();
+      if (s && s.kind === 'film') { s.variant = v; renderWall(); }
+      syncFilmSegs();
+    }
+    $$('[data-filmvariant]').forEach(b => b.addEventListener('click', () => setFilmVariant(b.dataset.filmvariant)));
+    $$('[data-selfilmvariant]').forEach(b => b.addEventListener('click', () => setFilmVariant(b.dataset.selfilmvariant)));
     $('#sel-scale').addEventListener('input', (e) => { const s = sel(); if (s) { s.scale = e.target.value / 100; $('#sel-scale-val').textContent = e.target.value + '%'; renderWall(); } });
     $('#sel-rot').addEventListener('input', (e) => { const s = sel(); if (s) { s.rot = +e.target.value; $('#sel-rot-val').textContent = e.target.value + '°'; renderWall(); } });
     $('#sel-opacity').addEventListener('input', (e) => { const s = sel(); if (s) { s.opacity = e.target.value / 100; $('#sel-opacity-val').textContent = e.target.value + '%'; renderWall(); } });
@@ -1945,7 +1992,7 @@
           if (l.kind === 'photo') { b.k = 'photoslot'; b.bw = l.img.width; b.bh = l.img.height; }
           else if (l.kind === 'sticker') { b.sh = l.shape; b.c = l.color; if (l.pattern && l.pattern !== 'solid') b.p = l.pattern; }
           else if (l.kind === 'text') { b.t = l.text; b.fn = l.font; b.c = l.color; b.ol = l.outline || ''; b.fs = Math.round(l.fontSize); b.w = Math.round(l.w); b.h = Math.round(l.h); }
-          else if (l.kind === 'film') { /* photos are never shared */ }
+          else if (l.kind === 'film') { if (l.variant && l.variant !== 'classic') b.fv = l.variant; /* photos are never shared */ }
           else if (l.kind === 'fourcut') { b.fc = l.frameColor || '#ffffff'; b.cc = l.captionColor || '#26202a'; if (l.caption) b.cp = l.caption; }
           else { if (l.caption) b.cp = l.caption; if (l.text) b.t = l.text; if (l.date) b.d = l.date; }
           return b;
@@ -1970,7 +2017,7 @@
         if (sv.k === 'photoslot') return Object.assign(base, { kind: 'photoslot', name: 'Photo spot', img: null, bw: +sv.bw || 800, bh: +sv.bh || 800 });
         if (sv.k === 'sticker') { const sh = SHAPES[sv.sh] ? sv.sh : Object.keys(SHAPES)[0]; return Object.assign(base, { kind: 'sticker', name: SHAPES[sh].label + ' sticker', shape: sh, color: sv.c || '#ff5d7e', pattern: sv.p || 'solid' }); }
         if (sv.k === 'text') return Object.assign(base, { kind: 'text', name: 'Text: ' + (sv.t || ''), text: sv.t || '', font: sv.fn || 'Jua', color: sv.c || '#26202a', outline: sv.ol || null, fontSize: +sv.fs || 100, w: +sv.w || 300, h: +sv.h || 120 });
-        if (sv.k === 'film') return Object.assign(base, { kind: 'film', name: 'Film strip', frames: [null, null, null] });
+        if (sv.k === 'film') return Object.assign(base, { kind: 'film', name: 'Film strip', frames: [null, null, null], variant: sv.fv || 'classic' });
         if (sv.k === 'fourcut') return Object.assign(base, { kind: 'fourcut', name: '4-Cut strip', frames: [null, null, null, null], frameColor: sv.fc || '#ffffff', captionColor: sv.cc || '#26202a', caption: sv.cp || '', text: '', date: '' });
         if (FRAME_DIMS[sv.k]) return Object.assign(base, { kind: sv.k, name: EL_NAMES[sv.k] || sv.k, img: null, caption: sv.cp || '', text: sv.t || '', date: sv.d || '' });
         return null;
