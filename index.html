@@ -267,7 +267,7 @@
           </div>
           <div class="stage-meta">
             <span class="res" id="cv-meta">Laptop 16:9 · 3840 × 2160 px · Lossless PNG</span>
-            <span class="hint">Drag elements to move them; drag a corner dot to resize</span>
+            <span class="hint">Drag elements to move them; drag a corner dot to resize; drag the top dot to rotate</span>
           </div>
         </div>
 
@@ -300,11 +300,11 @@
             <div id="bg-gradient-ui" class="hidden">
               <div class="row"><div class="swatches" id="grad-swatches"></div></div>
               <div class="row" style="margin-top:8px">
-                <div class="field" style="flex:0 0 auto; min-width:0">
+                <div class="field" style="flex:1">
                   <label>Color 1</label>
                   <input type="color" id="grad-color-1" class="color-big" value="#ffd9e3" aria-label="Custom gradient color 1" />
                 </div>
-                <div class="field" style="flex:0 0 auto; min-width:0">
+                <div class="field" style="flex:1">
                   <label>Color 2</label>
                   <input type="color" id="grad-color-2" class="color-big" value="#fff3c9" aria-label="Custom gradient color 2" />
                 </div>
@@ -472,7 +472,7 @@
                   <option value="Gowun Dodum">Gowun Dodum (clean)</option>
                 </select>
               </div>
-              <div class="field" style="flex:0 0 auto; min-width:0">
+              <div class="field" style="flex:1">
                 <label>Color</label>
                 <input type="color" id="text-color" class="color-big" value="#26202a" aria-label="Text color" />
               </div>
@@ -514,11 +514,11 @@
                 <input type="file" id="fourcut-file-2" accept="image/*" />
                 <input type="file" id="fourcut-file-3" accept="image/*" />
                 <div class="row" style="margin-top:8px">
-                  <div class="field" style="flex:0 0 auto; min-width:0">
+                  <div class="field" style="flex:1">
                     <label>Frame color</label>
                     <input type="color" id="fourcut-frame-color" class="color-big" value="#ffffff" aria-label="4-cut frame color" />
                   </div>
-                  <div class="field" style="flex:0 0 auto; min-width:0">
+                  <div class="field" style="flex:1">
                     <label>Caption color</label>
                     <input type="color" id="fourcut-cap-color" class="color-big" value="#26202a" aria-label="4-cut caption color" />
                   </div>
@@ -527,7 +527,7 @@
               </div>
             </div>
             <div class="row hidden" id="sel-color-row">
-              <div class="field" style="flex:0 0 auto; min-width:0">
+              <div class="field" style="flex:1">
                 <label>Color</label>
                 <input type="color" id="sel-color" class="color-big" value="#ff5d7e" aria-label="Selected element color" />
               </div>
@@ -1219,6 +1219,16 @@
         ctx.fillStyle = '#ff5d7e';
         ctx.beginPath(); ctx.arc(d.w / 2, d.h / 2, Math.max(16, w * 0.007), 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(3, w * 0.0012); ctx.stroke();
+        const rhY = -d.h / 2 - Math.max(70, w * 0.03), rhR = Math.max(16, w * 0.007);
+        ctx.strokeStyle = '#ff5d7e'; ctx.lineWidth = Math.max(3, w * 0.0012);
+        ctx.beginPath(); ctx.moveTo(0, -d.h / 2); ctx.lineTo(0, rhY + rhR * 0.7); ctx.stroke();
+        ctx.fillStyle = '#ff5d7e';
+        ctx.beginPath(); ctx.arc(0, rhY, rhR, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 ' + Math.round(rhR * 1.25) + 'px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('\u21bb', 0, rhY + rhR * 0.08);
         ctx.restore();
       }
     }
@@ -1243,10 +1253,23 @@
       const tol = Math.max(60, PRESETS[W.preset].w * 0.016);
       return Math.abs(lx - d.w / 2) < tol && Math.abs(ly - d.h / 2) < tol;
     }
+    function nearRotateHandle(l, px, py) {
+      const dx = px - l.x, dy = py - l.y;
+      const a = -l.rot * Math.PI / 180;
+      const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+      const d = layerDims(l);
+      const hy = -d.h / 2 - Math.max(70, PRESETS[W.preset].w * 0.03);
+      const tol = Math.max(60, PRESETS[W.preset].w * 0.016);
+      return Math.hypot(lx, ly - hy) < tol;
+    }
     let drag = null;
     cv.addEventListener('pointerdown', (e) => {
       const p = toCanvasCoords(e, cv);
       const s = sel();
+      if (s && nearRotateHandle(s, p.x, p.y)) {
+        drag = { mode: 'rotate', id: s.id };
+        cv.setPointerCapture(e.pointerId); return;
+      }
       if (s && nearHandle(s, p.x, p.y)) {
         const d = layerDims(s);
         drag = { mode: 'scale', id: s.id, startDist: Math.max(20, Math.hypot(p.x - s.x, p.y - s.y)), startScale: s.scale, w0: d.w, h0: d.h };
@@ -1266,6 +1289,15 @@
       const p = toCanvasCoords(e, cv);
       const l = W.layers.find(x => x.id === drag.id); if (!l) return;
       if (drag.mode === 'move') { l.x = p.x - drag.dx; l.y = p.y - drag.dy; }
+      else if (drag.mode === 'rotate') {
+        let ang = Math.atan2(p.y - l.y, p.x - l.x) * 180 / Math.PI + 90;
+        while (ang > 180) ang -= 360;
+        while (ang <= -180) ang += 360;
+        const snap = Math.round(ang / 15) * 15;
+        if (Math.abs(ang - snap) <= 4) ang = snap;
+        l.rot = Math.round(ang * 10) / 10;
+        syncSelPanel();
+      }
       else {
         const dist = Math.max(20, Math.hypot(p.x - l.x, p.y - l.y));
         l.scale = clamp(drag.startScale * dist / drag.startDist, 0.02, 8);
