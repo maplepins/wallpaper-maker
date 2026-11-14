@@ -335,13 +335,17 @@
               </div>
             </div>
             <div class="field" style="margin-top:10px">
-              <label>Overlay effect</label>
+              <label>Overlay effect (animated)</label>
               <div class="row" role="group" aria-label="Overlay effect">
                 <button data-effect="none" aria-pressed="true">None</button>
                 <button data-effect="grain" aria-pressed="false">Grain</button>
                 <button data-effect="sparkle" aria-pressed="false">Sparkle</button>
                 <button data-effect="both" aria-pressed="false">Both</button>
               </div>
+              <div class="row" style="margin-top:8px">
+                <button class="btn" id="btn-video" style="flex:1">Export animated video (4 sec)</button>
+              </div>
+              <p class="desc" style="margin-top:6px">The effect moves on screen. A PNG is a still image, so to keep the motion when you save, export the video - on Android it can be set as a video wallpaper.</p>
             </div>
             <div id="bg-photo-ui" class="hidden">
               <p class="desc">Pick a photo for the background and it fills the canvas. The original resolution is kept as is.</p>
@@ -1213,28 +1217,53 @@
       g.quadraticCurveTo(x, y, x - r, y); g.quadraticCurveTo(x, y, x, y - r);
       g.fill();
     }
-    let effectCache = { key: '', cv: null };
+    let effectCache = { key: '', grainCv: null, stars: [] };
+    let animTime = 0, animRunning = false, lastFxDraw = 0;
+    function buildFxCache(w, h) {
+      const key = W.effect + '|' + w + 'x' + h;
+      if (effectCache.key === key && (effectCache.grainCv || effectCache.stars.length)) return;
+      const cache = { key, grainCv: null, stars: [] };
+      if (W.effect === 'grain' || W.effect === 'both') {
+        const c = document.createElement('canvas'); c.width = w + 16; c.height = h + 16;
+        const g = c.getContext('2d');
+        const n = Math.floor(w * h / 900);
+        for (let i = 0; i < n; i++) {
+          g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+          g.fillRect(Math.random() * c.width, Math.random() * c.height, 2.2, 2.2);
+        }
+        cache.grainCv = c;
+      }
+      if (W.effect === 'sparkle' || W.effect === 'both') {
+        const n = Math.floor(w / 90);
+        for (let i = 0; i < n; i++) cache.stars.push({ x: Math.random() * w, y: Math.random() * h, r: 4 + Math.random() * 9, ph: Math.random() * Math.PI * 2, sp: 0.6 + Math.random() * 1.4 });
+      }
+      effectCache = cache;
+    }
+    const GRAIN_STEPS = [0, 5, 2, 7, 3, 6, 1, 4];
     function drawEffectOverlay(w, h) {
       if (!W.effect || W.effect === 'none') return;
-      const key = W.effect + '|' + w + 'x' + h;
-      if (effectCache.key !== key) {
-        const c = document.createElement('canvas'); c.width = w; c.height = h;
-        const g = c.getContext('2d');
-        if (W.effect === 'grain' || W.effect === 'both') {
-          const n = Math.floor(w * h / 900);
-          for (let i = 0; i < n; i++) {
-            g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
-            g.fillRect(Math.random() * w, Math.random() * h, 2.2, 2.2);
-          }
-        }
-        if (W.effect === 'sparkle' || W.effect === 'both') {
-          const n = Math.floor(w / 90);
-          g.fillStyle = 'rgba(255,255,255,0.75)';
-          for (let i = 0; i < n; i++) star4(g, Math.random() * w, Math.random() * h, 4 + Math.random() * 9);
-        }
-        effectCache = { key, cv: c };
+      buildFxCache(w, h);
+      if (effectCache.grainCv) {
+        const step = Math.floor(animTime / 130) % 8;
+        ctx.drawImage(effectCache.grainCv, GRAIN_STEPS[step] - 8, GRAIN_STEPS[(step + 3) % 8] - 8);
       }
-      ctx.drawImage(effectCache.cv, 0, 0);
+      if (effectCache.stars.length) {
+        for (const s of effectCache.stars) {
+          const tw = 0.5 + 0.5 * Math.sin(animTime * 0.001 * s.sp + s.ph);
+          ctx.fillStyle = 'rgba(255,255,255,' + (0.2 + 0.8 * tw).toFixed(3) + ')';
+          star4(ctx, s.x, s.y, s.r * (0.8 + 0.3 * tw));
+        }
+      }
+    }
+    function animLoop(ts) {
+      if (!animRunning) return;
+      if (ts - lastFxDraw >= 33) { lastFxDraw = ts; animTime = ts; renderWall(); }
+      requestAnimationFrame(animLoop);
+    }
+    function syncAnim() {
+      const want = !!(W.effect && W.effect !== 'none');
+      if (want && !animRunning) { animRunning = true; requestAnimationFrame(animLoop); }
+      else if (!want) animRunning = false;
     }
     function drawStickerShape(g, l) {
       const d = layerDims(l);
@@ -1526,7 +1555,7 @@
     document.querySelectorAll('[data-effect]').forEach(b => b.addEventListener('click', () => {
       W.effect = b.dataset.effect;
       document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-      renderWall();
+      renderWall(); syncAnim();
     }));
     function syncElPanel(s) {
       if (!s) return;
@@ -2075,8 +2104,8 @@
         return null;
       }).filter(Boolean);
       W.selectedId = null;
-      patternCache = null; effectCache = { key: '', cv: null };
-      syncBgUI(); selectLayer(null); renderLayerList(); renderWall();
+      patternCache = null; effectCache = { key: '', grainCv: null, stars: [] };
+      syncBgUI(); selectLayer(null); renderLayerList(); renderWall(); syncAnim();
       return true;
     }
     function loadSharedDesign() {
@@ -2088,6 +2117,30 @@
       } catch (e) { toast('That design link could not be loaded'); }
       history.replaceState(null, '', location.pathname + location.search);
     }
+    $('#btn-video').addEventListener('click', () => {
+      if (!W.effect || W.effect === 'none') { toast('Pick an overlay effect first (Grain or Sparkle)'); return; }
+      if (!cv.captureStream || typeof MediaRecorder === 'undefined') { toast('Video export is not supported in this browser'); return; }
+      syncAnim();
+      const mime = ['video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find(m => { try { return MediaRecorder.isTypeSupported(m); } catch { return false; } }) || '';
+      let rec;
+      try { rec = new MediaRecorder(cv.captureStream(30), mime ? { mimeType: mime, videoBitsPerSecond: 12000000 } : undefined); }
+      catch { toast('Video export is not supported in this browser'); return; }
+      const chunks = [];
+      rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = () => {
+        setBusy(false);
+        const blob = new Blob(chunks, { type: mime || 'video/webm' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'wallpaper-animated.' + (mime.indexOf('mp4') >= 0 ? 'mp4' : 'webm');
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        toast('Animated video saved');
+      };
+      setBusy(true, 'Recording 4 seconds...');
+      rec.start();
+      setTimeout(() => { try { rec.stop(); } catch { setBusy(false); } }, 4000);
+    });
     $('#btn-share-link').addEventListener('click', async () => {
       if (mode !== 'wall') { toast('Design links work in the Wallpaper tab'); return; }
       if (!W.layers.length) { toast('Add something to the wallpaper first'); return; }
