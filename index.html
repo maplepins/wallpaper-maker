@@ -290,6 +290,17 @@
             </div>
             <div id="bg-gradient-ui" class="hidden">
               <div class="row"><div class="swatches" id="grad-swatches"></div></div>
+              <div class="row" style="margin-top:8px">
+                <div class="field" style="flex:0 0 auto; min-width:0">
+                  <label>Color 1</label>
+                  <input type="color" id="grad-color-1" value="#ffd9e3" aria-label="Custom gradient color 1" />
+                </div>
+                <div class="field" style="flex:0 0 auto; min-width:0">
+                  <label>Color 2</label>
+                  <input type="color" id="grad-color-2" value="#fff3c9" aria-label="Custom gradient color 2" />
+                </div>
+              </div>
+              <p class="desc" style="margin-top:6px">Pick any two colors for your own gradient.</p>
             </div>
             <div id="bg-pattern-ui" class="hidden">
               <div class="row">
@@ -303,6 +314,12 @@
               <div class="row">
                 <div class="swatches" id="pattern-swatches"></div>
                 <input type="color" id="pattern-color-custom" value="#fff0f3" aria-label="Custom pattern color" />
+              </div>
+              <div class="row" style="margin-top:8px">
+                <div class="field" style="flex:0 0 auto; min-width:0">
+                  <label>Base color</label>
+                  <input type="color" id="pattern-base-custom" value="#ffe3ea" aria-label="Custom pattern base color" />
+                </div>
               </div>
             </div>
             <div class="field" style="margin-top:10px">
@@ -463,6 +480,13 @@
                 <label for="sel-opacity">Opacity <span class="val" id="sel-opacity-val"></span></label>
                 <input type="range" id="sel-opacity" min="10" max="100" value="100" />
               </div>
+            </div>
+            <div class="row hidden" id="sel-color-row">
+              <div class="field" style="flex:0 0 auto; min-width:0">
+                <label>Color</label>
+                <input type="color" id="sel-color" value="#ff5d7e" aria-label="Selected element color" />
+              </div>
+              <p class="desc" style="align-self:center">Any color you like.</p>
             </div>
             <div class="row hidden" id="tape-opts">
               <div class="field">
@@ -701,7 +725,7 @@
     const cv = $('#cv'), ctx = cv.getContext('2d');
     const W = {
       preset: 'laptop',
-      bg: { type: 'color', color: '#ffe3ea', grad: 0, pattern: 'dots', patternColor: '#fff0f3', img: null },
+      bg: { type: 'color', color: '#ffe3ea', grad: 0, gradCustom: null, pattern: 'dots', patternColor: '#fff0f3', img: null },
       layers: [],       // {id, kind:'photo'|'sticker'|'text', name, x,y, baseW,baseH, scale, rot, opacity, flip, ...}
       selectedId: null,
       stickerColor: '#ff5d7e',
@@ -755,7 +779,7 @@
       const { w, h } = PRESETS[W.preset], b = W.bg;
       if (b.type === 'color') { ctx.fillStyle = b.color; ctx.fillRect(0, 0, w, h); }
       else if (b.type === 'gradient') {
-        const [c1, c2] = GRADIENTS[b.grad];
+        const [c1, c2] = b.gradCustom || GRADIENTS[b.grad];
         const gr = ctx.createLinearGradient(0, 0, w * 0.25, h);
         gr.addColorStop(0, c1); gr.addColorStop(1, c2);
         ctx.fillStyle = gr; ctx.fillRect(0, 0, w, h);
@@ -1189,6 +1213,9 @@
       const s = sel();
       $('#sel-card').classList.toggle('hidden', !s);
       if (!s) return;
+      const hasColor = typeof s.color === 'string';
+      $('#sel-color-row').classList.toggle('hidden', !hasColor);
+      if (hasColor) $('#sel-color').value = s.color;
       const isTape = s.kind === 'sticker' && s.shape === 'tape';
       $('#tape-opts').classList.toggle('hidden', !isTape);
       if (isTape) document.querySelectorAll('[data-tapepat]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tapepat === (s.pattern || 'solid'))));
@@ -1226,6 +1253,7 @@
         list.appendChild(item);
       });
     }
+    $('#sel-color').addEventListener('input', (e) => { const s = sel(); if (s && typeof s.color === 'string') { s.color = e.target.value; renderWall(); } });
     document.querySelectorAll('[data-tapepat]').forEach(b => b.addEventListener('click', () => {
       const s = sel(); if (!s) return;
       s.pattern = b.dataset.tapepat; syncSelPanel(); renderWall();
@@ -1337,9 +1365,9 @@
         const b = document.createElement('button');
         b.className = 'swatch'; b.type = 'button';
         b.style.background = `linear-gradient(135deg, ${g[0]}, ${g[1]})`;
-        b.setAttribute('aria-pressed', W.bg.grad === i);
+        b.setAttribute('aria-pressed', String(!W.bg.gradCustom && W.bg.grad === i));
         b.setAttribute('aria-label', 'Gradient ' + (i + 1));
-        b.addEventListener('click', () => { W.bg.grad = i; W.bg.type = 'gradient'; syncBgUI(); renderWall(); });
+        b.addEventListener('click', () => { W.bg.grad = i; W.bg.gradCustom = null; W.bg.type = 'gradient'; syncBgUI(); renderWall(); });
         gEl.appendChild(b);
       });
       swatchRow($('#pattern-swatches'), BG_COLORS, W.bg.patternColor, (c) => { W.bg.patternColor = c; renderWall(); });
@@ -1349,6 +1377,9 @@
       });
     }
     function syncBgUI() {
+      const gp = W.bg.gradCustom || GRADIENTS[W.bg.grad] || GRADIENTS[0];
+      $('#grad-color-1').value = gp[0]; $('#grad-color-2').value = gp[1];
+      $('#pattern-base-custom').value = W.bg.color;
       $$('#view-wall [data-bgtype]').forEach(b => b.setAttribute('aria-pressed', b.dataset.bgtype === W.bg.type));
       $('#bg-color-ui').classList.toggle('hidden', W.bg.type !== 'color');
       $('#bg-gradient-ui').classList.toggle('hidden', W.bg.type !== 'gradient');
@@ -1363,6 +1394,10 @@
     }));
     $('#bg-color-custom').addEventListener('input', (e) => { W.bg.color = e.target.value; W.bg.type = 'color'; syncBgUI(); renderWall(); });
     $('#pattern-color-custom').addEventListener('input', (e) => { W.bg.patternColor = e.target.value; renderWall(); });
+    const gradPick = () => { W.bg.gradCustom = [$('#grad-color-1').value, $('#grad-color-2').value]; W.bg.type = 'gradient'; refreshSwatches(); renderWall(); };
+    $('#grad-color-1').addEventListener('input', gradPick);
+    $('#grad-color-2').addEventListener('input', gradPick);
+    $('#pattern-base-custom').addEventListener('input', (e) => { W.bg.color = e.target.value; renderWall(); });
     $$('#pattern-seg button').forEach(b => b.addEventListener('click', () => {
       W.bg.pattern = b.dataset.pattern;
       $$('#pattern-seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -1706,7 +1741,7 @@
     function serializeDesign() {
       return {
         v: 1, preset: W.preset,
-        bg: { type: W.bg.type === 'photo' ? 'color' : W.bg.type, color: W.bg.color, grad: W.bg.grad, pattern: W.bg.pattern, patternColor: W.bg.patternColor },
+        bg: { type: W.bg.type === 'photo' ? 'color' : W.bg.type, color: W.bg.color, grad: W.bg.grad, gc: W.bg.gradCustom || null, pattern: W.bg.pattern, patternColor: W.bg.patternColor },
         effect: W.effect, stickerColor: W.stickerColor,
         layers: W.layers.map(l => {
           const b = { k: l.kind, x: Math.round(l.x), y: Math.round(l.y), s: Math.round(l.scale * 1000) / 1000, r: Math.round(l.rot * 10) / 10, o: l.opacity, f: l.flip ? 1 : 0 };
@@ -1728,7 +1763,7 @@
       $('#preset-laptop').setAttribute('aria-pressed', String(preset === 'laptop'));
       $('#preset-ipad').setAttribute('aria-pressed', String(preset === 'ipad'));
       const b = d.bg || {};
-      W.bg = { type: ['color', 'gradient', 'pattern'].indexOf(b.type) >= 0 ? b.type : 'color', color: b.color || '#ffe3ea', grad: b.grad || 0, pattern: b.pattern || 'dots', patternColor: b.patternColor || '#fff0f3', img: null };
+      W.bg = { type: ['color', 'gradient', 'pattern'].indexOf(b.type) >= 0 ? b.type : 'color', color: b.color || '#ffe3ea', grad: b.grad || 0, gradCustom: Array.isArray(b.gc) && b.gc.length === 2 ? b.gc : null, pattern: b.pattern || 'dots', patternColor: b.patternColor || '#fff0f3', img: null };
       W.effect = ['none', 'grain', 'sparkle', 'both'].indexOf(d.effect) >= 0 ? d.effect : 'none';
       document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.effect === W.effect)));
       if (d.stickerColor) W.stickerColor = d.stickerColor;
