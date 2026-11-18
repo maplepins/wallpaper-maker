@@ -2548,8 +2548,8 @@
       const isz = tb * 0.55;
       for (let i = 0; i < 6; i++) { rrPath(ctx, w * 0.012 + i * (isz + tb * 0.3), h - tb + (tb - isz) / 2, isz, isz, isz * 0.2); ctx.fill(); }
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.font = '600 ' + Math.round(h * 0.016) + 'px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-      ctx.fillText('Preview only - icons are not saved into the PNG', w * 0.022, y0 + 5 * (s + gap * 1.6) + h * 0.02);
+      ctx.font = '600 ' + Math.round(tb * 0.34) + 'px sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText('Preview only - not saved into the PNG', w * 0.99, h - tb / 2);
       ctx.restore();
     }
     function drawGuides(w, h) {
