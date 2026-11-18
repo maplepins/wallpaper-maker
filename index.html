@@ -185,6 +185,20 @@
       }
       .val { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 
+      .tpl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+      .tpl-grid button { padding: 10px 8px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--panel-2, #fff7fa); font-weight: 600; cursor: pointer; }
+      .tpl-grid button:hover { border-color: var(--pink); }
+      .pal-row { display: flex; flex-wrap: wrap; gap: 6px; }
+      .pal-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 6px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; font-weight: 600; font-size: 12.5px; }
+      .pal-chip:hover { border-color: var(--pink); }
+      .pal-dot { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); }
+      .match-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+      .match-swatch { width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,.15); cursor: pointer; padding: 0; }
+      .folder-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+      .folder-grid button { padding: 8px 4px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; font-weight: 600; font-size: 12px; }
+      .folder-grid button:hover { border-color: var(--pink); }
+      .slot-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+      .slot-row .slot-label { flex: 1; font-size: 12.5px; color: var(--ink-soft); }
       .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
       .sticker-grid button {
         border: 1.5px solid var(--line); background: var(--bg-soft); border-radius: 12px;
@@ -239,6 +253,7 @@
         <span>
           <span class="name">Wallpaper Maker</span>
           <div class="sub">High-res wallpapers from your photos · 4-cut strips</div>
+          <div class="sub" style="color:var(--pink-deep); font-weight:600">Free · No sign-up · No watermark · Photos never leave your device</div>
         </span>
       </div>
       <div class="row" style="gap:6px">
@@ -273,15 +288,42 @@
           <div class="stage-meta">
             <span class="res" id="cv-meta">Laptop 16:9 · 3840 × 2160 px · Lossless PNG</span>
             <span class="hint">Drag elements to move them; drag a corner dot to resize; drag the top dot to rotate</span>
+            <button class="btn" id="btn-iconprev" type="button" aria-pressed="false">Preview desktop icons</button>
           </div>
         </div>
 
         <div class="panel">
           <section class="card">
+            <h3><span class="dot" style="background:var(--pink)"></span>Start from a design</h3>
+            <p class="desc">No blank-page stress. Pick a ready-made layout, then swap in your own photos.</p>
+            <div class="tpl-grid">
+              <button type="button" data-template="coquette">Coquette pink</button>
+              <button type="button" data-template="organizer">Desktop organizer</button>
+              <button type="button" data-template="filmdiary">Film diary</button>
+              <button type="button" data-template="study">Study focus</button>
+              <button type="button" data-template="y2k">Y2K pop</button>
+              <button type="button" data-template="cozy">Cozy autumn</button>
+            </div>
+            <hr class="divider" />
+            <div class="field">
+              <label>Color mood (one click sets the whole palette)</label>
+              <div class="pal-row" id="pal-row"></div>
+            </div>
+            <hr class="divider" />
+            <div class="field">
+              <label>My designs (saved in this browser)</label>
+              <div id="mydesigns"></div>
+              <p class="desc" style="margin-top:6px">Your current design also auto-saves as you work, so a refresh never loses it. Photo spots are saved empty - just add your photos again.</p>
+            </div>
+          </section>
+
+          <section class="card">
             <h3><span class="dot" style="background:var(--sky)"></span>Canvas &amp; Background</h3>
             <div class="seg" role="group" aria-label="Aspect ratio">
-              <button id="preset-laptop" aria-pressed="true">Laptop 16:9 · 3840×2160</button>
-              <button id="preset-ipad" aria-pressed="false">iPad 4:3 · 2752×2064</button>
+              <button id="preset-laptop" data-preset="laptop" aria-pressed="true">Laptop 16:9 · 3840×2160</button>
+              <button id="preset-ipad" data-preset="ipad" aria-pressed="false">iPad 4:3 · 2752×2064</button>
+              <button data-preset="wide" aria-pressed="false">Ultrawide 21:9 · 3440×1440</button>
+              <button data-preset="mac" aria-pressed="false">Laptop 16:10 · 2560×1600</button>
             </div>
             <hr class="divider" />
             <div class="row" role="group" aria-label="Background type">
@@ -362,6 +404,12 @@
                 Choose background photo
               </label>
               <input type="file" id="bg-photo-input" accept="image/*" />
+              <hr class="divider" />
+              <p class="desc">Or match the colors to a photo you love - we pull its main colors for you.</p>
+              <label class="btn block" for="match-input">Pick a photo to match colors</label>
+              <input type="file" id="match-input" accept="image/*" />
+              <div class="match-row" id="match-swatches"></div>
+              <div class="row hidden" id="match-grad-row"><button class="btn" id="btn-match-grad" type="button" style="flex:1">Use top two colors as a gradient</button></div>
             </div>
           </section>
 
@@ -499,6 +547,15 @@
               </div>
             </div>
             <div class="row"><button class="btn primary block" id="btn-add-text">Add text</button></div>
+            <div class="field" style="margin-top:10px">
+              <label>Or tap a ready-made quote</label>
+              <div class="row" role="group" aria-label="Quote presets">
+                <button type="button" data-quote="0">today is a good day</button>
+                <button type="button" data-quote="1">stay cozy</button>
+                <button type="button" data-quote="2">focus, breathe, begin</button>
+                <button type="button" data-quote="3">you are doing great</button>
+              </div>
+            </div>
           </section>
 
           <section class="card hidden" id="sel-card">
@@ -519,6 +576,36 @@
               <div class="field">
                 <label for="sel-opacity">Opacity <span class="val" id="sel-opacity-val"></span></label>
                 <input type="range" id="sel-opacity" min="10" max="100" value="100" />
+              </div>
+            </div>
+            <div class="row" id="sel-shadow-row">
+              <div class="field">
+                <label for="sel-shadow">Drop shadow <span class="val" id="sel-shadow-val"></span></label>
+                <input type="range" id="sel-shadow" min="0" max="100" value="0" />
+              </div>
+            </div>
+            <div class="row hidden" id="filter-row">
+              <div class="field">
+                <label>Photo filter</label>
+                <div class="row" role="group" aria-label="Photo filter">
+                  <button data-filter="none" aria-pressed="true">None</button>
+                  <button data-filter="warm" aria-pressed="false">Warm</button>
+                  <button data-filter="vintage" aria-pressed="false">Vintage</button>
+                  <button data-filter="mono" aria-pressed="false">Mono</button>
+                  <button data-filter="pastel" aria-pressed="false">Pastel</button>
+                  <button data-filter="vivid" aria-pressed="false">Vivid</button>
+                </div>
+              </div>
+            </div>
+            <div class="row hidden" id="postit-opts">
+              <div class="field">
+                <label>Post-it style</label>
+                <div class="row" role="group" aria-label="Post-it style">
+                  <button data-postitpat="plain" aria-pressed="true">Plain</button>
+                  <button data-postitpat="grid" aria-pressed="false">Grid</button>
+                  <button data-postitpat="lined" aria-pressed="false">Lined</button>
+                  <button data-postitpat="check" aria-pressed="false">To-do</button>
+                </div>
               </div>
             </div>
             <div class="row hidden" id="film-variant-row">
@@ -577,6 +664,9 @@
                   <button data-tapepat="dots" aria-pressed="false">Dots</button>
                   <button data-tapepat="stripes" aria-pressed="false">Stripes</button>
                   <button data-tapepat="check" aria-pressed="false">Check</button>
+                  <button data-tapepat="gingham" aria-pressed="false">Gingham</button>
+                  <button data-tapepat="hearts" aria-pressed="false">Hearts</button>
+                  <button data-tapepat="stars" aria-pressed="false">Stars</button>
                 </div>
               </div>
             </div>
@@ -596,6 +686,12 @@
           <section class="card">
             <h3><span class="dot" style="background:var(--mint)"></span>Elements <span class="val" id="layer-count"></span></h3>
             <div class="layer-list" id="layer-list"></div>
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--sun)"></span>Matching folder icons</h3>
+            <p class="desc">Finish the look: download folder icons that match your wallpaper, then set them as your real desktop folder icons.</p>
+            <div class="folder-grid" id="folder-grid"></div>
           </section>
         </div>
       </div>
@@ -741,6 +837,19 @@
           c.lineWidth = h * 0.055;
           for (let x = -w / 2; x <= w / 2; x += h * 0.3) { c.beginPath(); c.moveTo(x, -h / 2); c.lineTo(x, h / 2); c.stroke(); }
           for (let y = -h / 2; y <= h / 2; y += h * 0.3) { c.beginPath(); c.moveTo(-w / 2, y); c.lineTo(w / 2, y); c.stroke(); }
+        } else if (pattern === 'gingham') {
+          c.globalAlpha *= 0.45;
+          const st = h * 0.34;
+          for (let x = -w / 2; x < w / 2; x += st * 2) c.fillRect(x, -h / 2, st, h);
+          for (let y = -h / 2; y < h / 2; y += st * 2) c.fillRect(-w / 2, y, w, st);
+        } else if (pattern === 'hearts' || pattern === 'stars') {
+          const st = h * 0.52, r = h * 0.12;
+          for (let yy = -h / 2 + st * 0.55; yy < h / 2; yy += st)
+            for (let xx = -w / 2 + st * 0.55; xx < w / 2; xx += st) {
+              c.save(); c.translate(xx, yy); c.scale(r / 50, r / 50);
+              if (pattern === 'hearts') heartPath(c); else sparklePath(c);
+              c.fill(); c.restore();
+            }
         }
       }
       c.restore();
@@ -756,7 +865,15 @@
       c.closePath();
     }
     function clipPath(c) { c.beginPath(); roundedRectSub(c, -17, -42, 34, 84, 17); roundedRectSub(c, -8, -22, 16, 56, 8); }
-    function postitDraw(c, w, h, color) {
+    function cherryPath(c) { c.beginPath(); c.arc(-16, 22, 15, 0, Math.PI * 2); c.moveTo(31, 28); c.arc(18, 28, 13, 0, Math.PI * 2); c.moveTo(30, -32); c.bezierCurveTo(16, -42, -2, -40, -8, -28); c.bezierCurveTo(4, -24, 20, -22, 30, -32); c.closePath(); }
+    function bubblePath(c) { c.beginPath(); c.arc(0, 0, 34, 0, Math.PI * 2); c.closePath(); }
+    function dropletPath(c) { c.beginPath(); c.moveTo(0, -42); c.bezierCurveTo(16, -14, 30, 4, 30, 18); c.bezierCurveTo(30, 36, 16, 44, 0, 44); c.bezierCurveTo(-16, 44, -30, 36, -30, 18); c.bezierCurveTo(-30, 4, -16, -14, 0, -42); c.closePath(); }
+    function fishPath(c) { c.beginPath(); c.moveTo(-38, 0); c.bezierCurveTo(-14, -24, 14, -26, 30, -8); c.lineTo(44, -20); c.lineTo(44, 20); c.lineTo(30, 8); c.bezierCurveTo(14, 26, -14, 24, -38, 0); c.closePath(); }
+    function pixelHeartPath(c) { c.beginPath(); c.moveTo(-36, -28); c.lineTo(-12, -28); c.lineTo(-12, -16); c.lineTo(0, -16); c.lineTo(0, -28); c.lineTo(24, -28); c.lineTo(36, -28); c.lineTo(36, -4); c.lineTo(24, 8); c.lineTo(24, 16); c.lineTo(12, 28); c.lineTo(0, 40); c.lineTo(-12, 28); c.lineTo(-24, 16); c.lineTo(-24, 8); c.lineTo(-36, -4); c.closePath(); }
+    function catPath(c) { c.beginPath(); c.moveTo(-30, -18); c.lineTo(-34, -42); c.lineTo(-10, -30); c.bezierCurveTo(-4, -33, 4, -33, 10, -30); c.lineTo(34, -42); c.lineTo(30, -18); c.bezierCurveTo(38, 10, 24, 36, 0, 36); c.bezierCurveTo(-24, 36, -38, 10, -30, -18); c.closePath(); }
+    function snowflakePath(c) { c.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, dx = Math.cos(a), dy = Math.sin(a); c.moveTo(0, 0); c.lineTo(dx * 40, dy * 40); for (const t of [0.55, 0.8]) { const bx = dx * 40 * t, by = dy * 40 * t; for (const sgn of [-1, 1]) { const ba = a + sgn * 0.7; c.moveTo(bx, by); c.lineTo(bx + Math.cos(ba) * 13, by + Math.sin(ba) * 13); } } } }
+    function maplePath(c) { c.beginPath(); c.moveTo(0, 46); c.lineTo(-4, 30); c.lineTo(-20, 38); c.lineTo(-18, 22); c.lineTo(-34, 26); c.lineTo(-28, 10); c.lineTo(-42, 8); c.lineTo(-30, -4); c.lineTo(-38, -14); c.lineTo(-22, -14); c.lineTo(-16, -28); c.lineTo(-6, -16); c.lineTo(0, -40); c.lineTo(6, -16); c.lineTo(16, -28); c.lineTo(22, -14); c.lineTo(38, -14); c.lineTo(30, -4); c.lineTo(42, 8); c.lineTo(28, 10); c.lineTo(34, 26); c.lineTo(18, 22); c.lineTo(20, 38); c.lineTo(4, 30); c.closePath(); }
+    function postitDraw(c, w, h, color, style) {
       c.save();
       const fold = Math.min(w, h) * 0.22;
       const x0 = -w / 2, y0 = -h / 2, x1 = w / 2, y1 = h / 2;
@@ -770,6 +887,19 @@
       c.moveTo(x1 - fold, y1); c.lineTo(x1, y1 - fold); c.lineTo(x1 - fold, y1 - fold);
       c.closePath();
       c.fillStyle = 'rgba(0,0,0,0.13)'; c.fill();
+      if (style && style !== 'plain' && style !== 'solid') {
+        c.strokeStyle = 'rgba(0,0,0,0.16)'; c.lineWidth = Math.max(1.5, h * 0.006);
+        const top = y0 + h * 0.22, lh = h * 0.13;
+        if (style === 'grid') {
+          for (let gx = x0 + lh; gx < x1 - 2; gx += lh) { c.beginPath(); c.moveTo(gx, y0 + 2); c.lineTo(gx, y1 - 2); c.stroke(); }
+          for (let gy = top; gy < y1 - 2; gy += lh) { c.beginPath(); c.moveTo(x0 + 2, gy); c.lineTo(x1 - 2, gy); c.stroke(); }
+        } else {
+          for (let ly = top; ly < y1 - fold * 0.4; ly += lh) {
+            c.beginPath(); c.moveTo(x0 + w * 0.07, ly); c.lineTo(x1 - w * 0.07, ly); c.stroke();
+            if (style === 'check') c.strokeRect(x0 + w * 0.08, ly - lh * 0.55, lh * 0.42, lh * 0.42);
+          }
+        }
+      }
       c.restore();
     }
     const SHAPES = {
@@ -787,6 +917,14 @@
       postit: { label: 'Post-it', path: null },
       pin:    { label: 'Pin', path: pinPath },
       clip:   { label: 'Clip', path: clipPath, stroke: true },
+      cherry: { label: 'Cherry', path: cherryPath },
+      bubble: { label: 'Bubble', path: bubblePath },
+      droplet:{ label: 'Droplet', path: dropletPath },
+      fish:   { label: 'Fish', path: fishPath },
+      pixelheart: { label: 'Pixel heart', path: pixelHeartPath },
+      cat:    { label: 'Cat', path: catPath },
+      snowflake: { label: 'Snowflake', path: snowflakePath, stroke: true },
+      maple:  { label: 'Maple leaf', path: maplePath },
     };
     const SHAPE_SVG = {
       heart: '<path d="M50 84C14 56 6 34 22 20c10-9 24-6 28 4 4-10 18-13 28-4 16 14 8 36-28 64z"/>',
@@ -803,12 +941,22 @@
       postit: '<path d="M24 18h52v38l-14 14H24z"/><path d="M62 70l14-14H62z" opacity=".45"/>',
       pin: '<circle cx="50" cy="32" r="17"/><path d="M43 44l7 38 7-38z"/>',
       clip: '<rect x="34" y="8" width="32" height="84" rx="16" fill="none" stroke-width="7"/><rect x="43" y="26" width="14" height="56" rx="7" fill="none" stroke-width="6"/>',
+      cherry: '<circle cx="34" cy="72" r="15"/><circle cx="68" cy="78" r="13"/><path d="M58 20c8-10 24-10 30-2-6 8-22 8-30 2z"/>',
+      bubble: '<circle cx="50" cy="50" r="34"/><circle cx="38" cy="38" r="9" fill="#fff" opacity=".55"/>',
+      droplet: '<path d="M50 8c8 14 20 26 20 40a20 20 0 11-40 0c0-14 12-26 20-40z"/>',
+      fish: '<path d="M6 50c10-12 26-14 40-6l14-12v36L46 56c-14 8-30 6-40-6z"/>',
+      pixelheart: '<path d="M14 22h24v12h12V22h24v24L74 58v8L62 78 50 90 38 78 26 66v-8L14 46z"/>',
+      cat: '<path d="M20 32L16 8l24 12c6-3 14-3 20 0L84 8 80 32c8 28-6 54-30 54S12 60 20 32z"/>',
+      snowflake: '<path d="M50 12v76M18 31l64 38M82 31L18 69" fill="none" stroke-width="7" stroke-linecap="round"/>',
+      maple: '<path d="M50 96L46 80 30 88 32 72 16 76 22 60 8 58 20 46 12 36 28 36 34 22 44 34 50 10 56 34 66 22 72 36 88 36 80 46 92 58 78 60 84 76 68 72 70 88 54 80z"/>',
     };
 
     /* ================= WALLPAPER state ================= */
     const PRESETS = {
       laptop: { w: 3840, h: 2160, label: 'Laptop 16:9 · 3840 × 2160 px · Lossless PNG' },
       ipad:   { w: 2752, h: 2064, label: 'iPad 4:3 · 2752 × 2064 px · Lossless PNG' },
+      wide:   { w: 3440, h: 1440, label: 'Ultrawide 21:9 · 3440 × 1440 px · Lossless PNG' },
+      mac:    { w: 2560, h: 1600, label: 'Laptop 16:10 · 2560 × 1600 px · Lossless PNG' },
     };
     const cv = $('#cv'), ctx = cv.getContext('2d');
     let filmVariantDefault = 'classic';
@@ -818,6 +966,7 @@
       layers: [],       // {id, kind:'photo'|'sticker'|'text', name, x,y, baseW,baseH, scale, rot, opacity, flip, ...}
       selectedId: null,
       stickerColor: '#ff5d7e',
+      iconPreview: false,
       effect: 'none',
       fxStr: 50,
     };
@@ -1281,7 +1430,7 @@
     function drawStickerShape(g, l) {
       const d = layerDims(l);
       if (l.shape === 'tape') { tapeDraw(g, d.w, d.h, l.color, l.pattern || 'solid'); return; }
-      if (l.shape === 'postit') { postitDraw(g, d.w, d.h, l.color); return; }
+      if (l.shape === 'postit') { postitDraw(g, d.w, d.h, l.color, l.pattern || 'plain'); return; }
       const k = d.w / 100; // shapes are authored in a 100-unit box
       g.save();
       g.scale(k, k);
@@ -1307,11 +1456,15 @@
       ctx.clearRect(0, 0, w, h);
       drawBackground();
       for (const l of W.layers) {
+        if (l.hidden) continue;
         const d = layerDims(l);
         ctx.save();
         ctx.translate(l.x, l.y); ctx.rotate(l.rot * Math.PI / 180);
         if (l.flip) ctx.scale(-1, 1);
         ctx.globalAlpha = l.opacity;
+        if (l.shadow) { ctx.shadowColor = 'rgba(74,42,28,0.35)'; ctx.shadowBlur = l.shadow * w * 0.0035; ctx.shadowOffsetY = l.shadow * w * 0.0016; }
+        const useFilter = (l.kind === 'photo' || l.kind === 'photoslot') && l.filter && l.filter !== 'none' && PHOTO_FILTERS[l.filter];
+        if (useFilter) ctx.filter = PHOTO_FILTERS[l.filter];
         if (l.kind === 'photo') ctx.drawImage(l.display(), -d.w / 2, -d.h / 2, d.w, d.h);
         else if (l.kind === 'photoslot') drawPhotoSlot(ctx, l.img, -d.w / 2, -d.h / 2, d.w, d.h);
         else if (l.kind === 'sticker') drawStickerShape(ctx, l);
@@ -1319,9 +1472,12 @@
         else if (l.kind === 'fourcut') drawFourCut(ctx, l);
         else if (FRAME_DIMS[l.kind]) drawFrameEl(ctx, l);
         else if (l.kind === 'text') { ctx.scale(l.scale, l.scale); drawTextLayer(ctx, l); }
+        ctx.filter = 'none';
         ctx.restore();
       }
       drawEffectOverlay(w, h);
+      if (!chromeHidden) { if (W.iconPreview) drawIconPreview(w, h); if (activeGuides) drawGuides(w, h); }
+      scheduleAutosave();
       addPicBtn = null;
       const s = sel();
       if (s) {
@@ -1415,6 +1571,8 @@
     }
     let addPicBtn = null;
     let drag = null;
+    let chromeHidden = false;
+    let activeGuides = null;
     function openFramePhoto(s) {
       if (s.kind === 'film') { let i = s.frames.findIndex(f => !f); if (i < 0) i = 0; $('#film-file-' + i).click(); }
       else if (s.kind === 'fourcut') { let i = s.frames.findIndex(f => !f); if (i < 0) i = 0; $('#fourcut-file-' + i).click(); }
@@ -1445,6 +1603,7 @@
         cv.setPointerCapture(e.pointerId); return;
       }
       for (let i = W.layers.length - 1; i >= 0; i--) {
+        if (W.layers[i].hidden) continue;
         if (hitLayer(W.layers[i], p.x, p.y)) {
           selectLayer(W.layers[i].id);
           pushHistory();
@@ -1458,7 +1617,15 @@
       if (!drag) return;
       const p = toCanvasCoords(e, cv);
       const l = W.layers.find(x => x.id === drag.id); if (!l) return;
-      if (drag.mode === 'move') { l.x = p.x - drag.dx; l.y = p.y - drag.dy; }
+      if (drag.mode === 'move') {
+        l.x = p.x - drag.dx; l.y = p.y - drag.dy;
+        const cw = PRESETS[W.preset].w, chh = PRESETS[W.preset].h, th = cw * 0.006;
+        activeGuides = { v: [], h: [] };
+        const vT = [cw / 2], hT = [chh / 2];
+        for (const o of W.layers) { if (o.id !== l.id && !o.hidden) { vT.push(o.x); hT.push(o.y); } }
+        for (const t of vT) if (Math.abs(l.x - t) <= th) { l.x = t; activeGuides.v.push(t); break; }
+        for (const t of hT) if (Math.abs(l.y - t) <= th) { l.y = t; activeGuides.h.push(t); break; }
+      }
       else if (drag.mode === 'rotate') {
         let ang = Math.atan2(p.y - l.y, p.x - l.x) * 180 / Math.PI + 90;
         while (ang > 180) ang -= 360;
@@ -1475,7 +1642,7 @@
       }
       renderWall();
     });
-    ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, () => { drag = null; }));
+    ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, () => { drag = null; if (activeGuides) { activeGuides = null; renderWall(); } }));
 
     /* ================= selection + layer panel ================= */
     function selectLayer(id) {
@@ -1533,6 +1700,14 @@
       });
       $('#sel-opacity').value = Math.round(s.opacity * 100);
       $('#sel-opacity-val').textContent = Math.round(s.opacity * 100) + '%';
+      $('#sel-shadow').value = Math.round(s.shadow || 0);
+      $('#sel-shadow-val').textContent = Math.round(s.shadow || 0) + '%';
+      const isPostit = s.kind === 'sticker' && s.shape === 'postit';
+      $('#postit-opts').classList.toggle('hidden', !isPostit);
+      if (isPostit) document.querySelectorAll('[data-postitpat]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.postitpat === (s.pattern || 'plain'))));
+      const canFilter = s.kind === 'photo' || s.kind === 'photoslot';
+      $('#filter-row').classList.toggle('hidden', !canFilter);
+      if (canFilter) document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === (s.filter || 'none'))));
       syncElPanel(s);
     }
     function renderLayerList() {
@@ -1546,13 +1721,20 @@
         const idx = W.layers.indexOf(l);
         const item = document.createElement('div');
         item.className = 'layer-item' + (l.id === W.selectedId ? ' sel' : '');
+        if (l.hidden) item.style.opacity = '0.45';
         item.innerHTML = `
           <button class="nm" type="button"></button>
+          <button class="mini" type="button" data-act="eye" aria-label="Show or hide element"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></svg></button>
           <button class="mini" type="button" data-act="up" aria-label="Bring forward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 15 6-6 6 6"/></svg></button>
           <button class="mini" type="button" data-act="down" aria-label="Send backward"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
           <button class="mini" type="button" data-act="del" aria-label="Delete element"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
         item.querySelector('.nm').textContent = l.name;
         item.querySelector('.nm').addEventListener('click', () => selectLayer(l.id));
+        item.querySelector('[data-act="eye"]').addEventListener('click', () => {
+          l.hidden = !l.hidden;
+          if (l.hidden && W.selectedId === l.id) W.selectedId = null;
+          renderWall(); renderLayerList(); syncSelPanel();
+        });
         item.querySelector('[data-act="up"]').addEventListener('click', () => {
           if (idx < W.layers.length - 1) { pushHistory(); [W.layers[idx], W.layers[idx + 1]] = [W.layers[idx + 1], W.layers[idx]]; renderWall(); renderLayerList(); }
         });
@@ -1646,12 +1828,26 @@
     $('#btn-undo').addEventListener('click', doUndo);
     $('#btn-redo').addEventListener('click', doRedo);
     document.addEventListener('keydown', (e) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
       const t = e.target;
-      if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && (t.type === 'text' || t.type === 'date')))) return;
-      const k = (e.key || '').toLowerCase();
-      if (k === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
-      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); doRedo(); }
+      const typing = t && (t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || (t.tagName === 'INPUT' && (t.type === 'text' || t.type === 'date' || t.type === 'color' || t.type === 'file')));
+      if (e.ctrlKey || e.metaKey) {
+        if (typing) return;
+        const k = (e.key || '').toLowerCase();
+        if (k === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
+        else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); doRedo(); }
+        else if (k === 'd') { e.preventDefault(); const b = $('#btn-dup'); if (b && sel()) b.click(); }
+        return;
+      }
+      if (typing) return;
+      const s = sel(); if (!s) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); $('#btn-del').click(); }
+      else if (e.key.indexOf('Arrow') === 0) {
+        e.preventDefault(); pushHistory();
+        const step = e.shiftKey ? 20 : 2;
+        if (e.key === 'ArrowLeft') s.x -= step; else if (e.key === 'ArrowRight') s.x += step;
+        else if (e.key === 'ArrowUp') s.y -= step; else if (e.key === 'ArrowDown') s.y += step;
+        renderWall();
+      }
     });
     $$('input[type="color"], input[type="range"], input[type="date"]').forEach(el => {
       el.addEventListener('pointerdown', () => pushHistory());
@@ -1661,6 +1857,7 @@
       const { w, h } = PRESETS[W.preset];
       const layer = { id: uid++, kind, name: EL_NAMES[kind] || kind, img: null, caption: '', text: '', date: '', x: w / 2, y: h / 2, scale: 1, rot: 0, opacity: 1, flip: false };
       if (kind === 'fourcut') { layer.frames = [null, null, null, null]; layer.frameColor = '#ffffff'; layer.captionColor = '#26202a'; layer.scale = 0.9; }
+      if (FRAME_DIMS[kind]) layer.shadow = 30;
       const ecd = EL_COLOR_DEFAULTS[kind];
       if (ecd) { layer.color = ecd[0]; if (ecd[1]) layer.accent = ecd[1]; }
       pushHistory();
@@ -1768,12 +1965,10 @@
       cv.width = nw.w; cv.height = nw.h;
       cv.style.setProperty('--ar', String(nw.w / nw.h));
       $('#cv-meta').textContent = nw.label;
-      $('#preset-laptop').setAttribute('aria-pressed', name === 'laptop');
-      $('#preset-ipad').setAttribute('aria-pressed', name === 'ipad');
+      document.querySelectorAll('[data-preset]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.preset === name)));
       renderWall();
     }
-    $('#preset-laptop').addEventListener('click', () => setPreset('laptop'));
-    $('#preset-ipad').addEventListener('click', () => setPreset('ipad'));
+    document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => setPreset(b.dataset.preset)));
 
     function swatchRow(el, colors, current, onPick) {
       el.innerHTML = '';
@@ -1898,7 +2093,7 @@
             id: uid++, kind: 'photo', name: f.name.replace(/\.[^.]+$/, '') || 'Photo',
             img, cut: null, displayCanvas: null, tol: 48, borderPx: 0,
             x: w / 2 + (Math.random() - 0.5) * w * 0.08, y: h / 2 + (Math.random() - 0.5) * h * 0.08,
-            scale: fit || 0.3, rot: 0, opacity: 1, flip: false,
+            scale: fit || 0.3, rot: 0, opacity: 1, flip: false, shadow: 22, filter: 'none',
           };
           layer.display = function () { return this.displayCanvas || this.img; };
           W.layers.push(layer);
@@ -1919,7 +2114,7 @@
         const layer = {
           id: uid++, kind: 'sticker', shape: key, name: SHAPES[key].label + ' sticker',
           color: W.stickerColor, x: w / 2, y: h / 2,
-          scale: (w * 0.10) / 300, rot: 0, opacity: 1, flip: false,
+          scale: (w * 0.10) / 300, rot: 0, opacity: 1, flip: false, shadow: 18,
         };
         pushHistory();
         W.layers.push(layer); selectLayer(layer.id);
@@ -2189,9 +2384,9 @@
     $('#tab-fc').addEventListener('click', () => setMode('fc'));
     $('#btn-export').addEventListener('click', () => {
       if (mode === 'wall') {
-        const keep = W.selectedId; W.selectedId = null; renderWall();
+        const keep = W.selectedId; W.selectedId = null; chromeHidden = true; renderWall();
         downloadCanvas(cv, 'wallpaper.png');
-        W.selectedId = keep; renderWall();
+        W.selectedId = keep; chromeHidden = false; renderWall();
         toast(PRESETS[W.preset].label.split('·')[1].trim() + ' saved as PNG');
       } else {
         const keep = fc.sel; fc.sel = -1; renderFC();
@@ -2223,6 +2418,7 @@
         effect: W.effect, fxi: W.fxStr == null ? 50 : W.fxStr, stickerColor: W.stickerColor,
         layers: W.layers.map(l => {
           const b = { k: l.kind, x: Math.round(l.x), y: Math.round(l.y), s: Math.round(l.scale * 1000) / 1000, r: Math.round(l.rot * 10) / 10, o: l.opacity, f: l.flip ? 1 : 0 };
+          if (l.shadow) b.sw = Math.round(l.shadow); if (l.hidden) b.hd = 1; if (l.filter && l.filter !== 'none') b.fl = l.filter;
           if (l.kind === 'photo') { b.k = 'photoslot'; b.bw = l.img.width; b.bh = l.img.height; }
           else if (l.kind === 'sticker') { b.sh = l.shape; b.c = l.color; if (l.pattern && l.pattern !== 'solid') b.p = l.pattern; }
           else if (l.kind === 'text') { b.t = l.text; b.fn = l.font; b.c = l.color; b.ol = l.outline || ''; b.fs = Math.round(l.fontSize); b.w = Math.round(l.w); b.h = Math.round(l.h); }
@@ -2241,8 +2437,7 @@
       cv.width = PRESETS[preset].w; cv.height = PRESETS[preset].h;
       cv.style.setProperty('--ar', String(PRESETS[preset].w / PRESETS[preset].h));
       $('#cv-meta').textContent = PRESETS[preset].label;
-      $('#preset-laptop').setAttribute('aria-pressed', String(preset === 'laptop'));
-      $('#preset-ipad').setAttribute('aria-pressed', String(preset === 'ipad'));
+      document.querySelectorAll('[data-preset]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.preset === preset)));
       const b = d.bg || {};
       W.bg = { type: ['color', 'gradient', 'pattern'].indexOf(b.type) >= 0 ? b.type : 'color', color: b.color || '#ffe3ea', grad: b.grad || 0, gradCustom: Array.isArray(b.gc) && b.gc.length === 2 ? b.gc : null, pattern: b.pattern || 'dots', patternColor: b.patternColor || '#fff0f3', img: null };
       W.effect = ['none', 'grain', 'sparkle', 'both'].indexOf(d.effect) >= 0 ? d.effect : 'none';
@@ -2250,7 +2445,7 @@
       document.querySelectorAll('[data-effect]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.effect === W.effect)));
       if (d.stickerColor) W.stickerColor = d.stickerColor;
       W.layers = d.layers.map(sv => {
-        const base = { id: uid++, x: +sv.x || 0, y: +sv.y || 0, scale: +sv.s || 1, rot: +sv.r || 0, opacity: sv.o == null ? 1 : sv.o, flip: !!sv.f };
+        const base = { id: uid++, x: +sv.x || 0, y: +sv.y || 0, scale: +sv.s || 1, rot: +sv.r || 0, opacity: sv.o == null ? 1 : sv.o, flip: !!sv.f, shadow: +sv.sw || 0, hidden: !!sv.hd, filter: sv.fl || 'none' };
         if (sv.k === 'photoslot') return Object.assign(base, { kind: 'photoslot', name: 'Photo spot', img: null, bw: +sv.bw || 800, bh: +sv.bh || 800 });
         if (sv.k === 'sticker') { const sh = SHAPES[sv.sh] ? sv.sh : Object.keys(SHAPES)[0]; return Object.assign(base, { kind: 'sticker', name: SHAPES[sh].label + ' sticker', shape: sh, color: sv.c || '#ff5d7e', pattern: sv.p || 'solid' }); }
         if (sv.k === 'text') return Object.assign(base, { kind: 'text', name: 'Text: ' + (sv.t || ''), text: sv.t || '', font: sv.fn || 'Jua', color: sv.c || '#26202a', outline: sv.ol || null, fontSize: +sv.fs || 100, w: +sv.w || 300, h: +sv.h || 120 });
@@ -2284,6 +2479,7 @@
       const chunks = [];
       rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
       rec.onstop = () => {
+        chromeHidden = false; renderWall();
         setBusy(false);
         const blob = new Blob(chunks, { type: mime || 'video/webm' });
         const a = document.createElement('a');
@@ -2293,6 +2489,7 @@
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
         toast('Animated video saved');
       };
+      chromeHidden = true; renderWall();
       setBusy(true, 'Recording 4 seconds...');
       rec.start();
       setTimeout(() => { try { rec.stop(); } catch { setBusy(false); } }, 4000);
@@ -2312,20 +2509,288 @@
       try { probe = new File([new Blob(['x'], { type: 'image/png' })], 'x.png', { type: 'image/png' }); } catch (e) { probe = null; }
       const canShareFiles = !!(probe && navigator.canShare && navigator.canShare({ files: [probe] }));
       if (!canShareFiles) {
-        if (isWall) { const keep = W.selectedId; W.selectedId = null; renderWall(); downloadCanvas(cv, name); W.selectedId = keep; renderWall(); }
+        if (isWall) { const keep = W.selectedId; W.selectedId = null; chromeHidden = true; renderWall(); downloadCanvas(cv, name); W.selectedId = keep; chromeHidden = false; renderWall(); }
         else { const keep = fc.sel; fc.sel = -1; renderFC(); downloadCanvas(fcCv, name); fc.sel = keep; renderFC(); }
         toast('This browser cannot share files, so the PNG was downloaded instead');
         return;
       }
       let keep;
-      if (isWall) { keep = W.selectedId; W.selectedId = null; renderWall(); } else { keep = fc.sel; fc.sel = -1; renderFC(); }
+      if (isWall) { keep = W.selectedId; W.selectedId = null; chromeHidden = true; renderWall(); } else { keep = fc.sel; fc.sel = -1; renderFC(); }
       target.toBlob(async (blob) => {
-        if (isWall) { W.selectedId = keep; renderWall(); } else { fc.sel = keep; renderFC(); }
+        if (isWall) { W.selectedId = keep; chromeHidden = false; renderWall(); } else { fc.sel = keep; renderFC(); }
         if (!blob) { toast('Could not create the image'); return; }
         try { await navigator.share({ files: [new File([blob], name, { type: 'image/png' })], title: 'My wallpaper' }); }
         catch (e) { /* share sheet was closed */ }
       }, 'image/png');
     });
+
+
+    /* ================= overhaul: templates, palettes, filters, autosave, extras ================= */
+    const PHOTO_FILTERS = {
+      warm: 'sepia(0.35) saturate(1.25) hue-rotate(-8deg)',
+      vintage: 'sepia(0.55) contrast(0.92) brightness(1.05) saturate(0.8)',
+      mono: 'grayscale(1) contrast(1.05)',
+      pastel: 'brightness(1.12) saturate(0.72) contrast(0.9)',
+      vivid: 'saturate(1.45) contrast(1.08)',
+    };
+    function drawIconPreview(w, h) {
+      ctx.save();
+      const s = w * 0.030, gap = w * 0.016, x0 = w * 0.022, y0 = h * 0.035;
+      ctx.fillStyle = 'rgba(30,30,45,0.40)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = Math.max(2, w * 0.0008);
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 2; c++) {
+        rrPath(ctx, x0 + c * (s + gap), y0 + r * (s + gap * 1.6), s, s, s * 0.18); ctx.fill(); ctx.stroke();
+      }
+      const tb = h * 0.048;
+      ctx.fillStyle = 'rgba(25,25,40,0.55)';
+      ctx.fillRect(0, h - tb, w, tb);
+      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      const isz = tb * 0.55;
+      for (let i = 0; i < 6; i++) { rrPath(ctx, w * 0.012 + i * (isz + tb * 0.3), h - tb + (tb - isz) / 2, isz, isz, isz * 0.2); ctx.fill(); }
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.font = '600 ' + Math.round(h * 0.016) + 'px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      ctx.fillText('Preview only - icons are not saved into the PNG', w * 0.022, y0 + 5 * (s + gap * 1.6) + h * 0.02);
+      ctx.restore();
+    }
+    function drawGuides(w, h) {
+      if (!activeGuides) return;
+      ctx.save();
+      ctx.strokeStyle = '#ff2e7e'; ctx.lineWidth = Math.max(2, w * 0.0007); ctx.setLineDash([w * 0.004, w * 0.003]);
+      for (const x of activeGuides.v) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+      for (const y of activeGuides.h) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      ctx.restore();
+    }
+    const TEMPLATES = {
+      coquette: { preset: 'laptop', bg: { type: 'color', color: '#ffe3ea', grad: 0, gc: null, pattern: 'dots', patternColor: '#fff0f3' }, effect: 'sparkle', fxi: 55, stickerColor: '#ff5d7e', layers: [
+        { k: 'polaroid', x: 1180, y: 1100, s: 1.5, r: -4, o: 1, f: 0, sw: 35, cp: 'my favorite day' },
+        { k: 'sticker', sh: 'tape', x: 1180, y: 430, s: 1.5, r: -6, o: 1, f: 0, c: '#ffd6e0', sw: 10 },
+        { k: 'text', t: 'my little world', fn: 'Jua', c: '#e5486c', fs: 200, w: 1560, h: 250, x: 2620, y: 760, s: 1, r: -2, o: 1, f: 0 },
+        { k: 'sticker', sh: 'bow', x: 3250, y: 480, s: 1.2, r: 8, o: 1, f: 0, c: '#ff8fab', sw: 18 },
+        { k: 'sticker', sh: 'heart', x: 2780, y: 1230, s: 1.3, r: 0, o: 1, f: 0, c: '#ff5d7e', sw: 18 },
+        { k: 'sticker', sh: 'postit', x: 2950, y: 1620, s: 1.25, r: 3, o: 1, f: 0, c: '#fff3c9', p: 'lined', sw: 18 },
+        { k: 'sticker', sh: 'sparkle', x: 2050, y: 420, s: 0.9, r: 0, o: 1, f: 0, c: '#ffffff', sw: 0 },
+      ] },
+      organizer: { preset: 'laptop', bg: { type: 'gradient', color: '#f5efe6', grad: 0, gc: ['#f5efe6', '#e8dcc8'], pattern: 'dots', patternColor: '#fff0f3' }, effect: 'none', fxi: 50, stickerColor: '#b08968', layers: [
+        { k: 'text', t: 'TO DO', fn: 'Jua', c: '#7f5539', fs: 120, w: 450, h: 150, x: 820, y: 300, s: 1, r: 0, o: 1, f: 0 },
+        { k: 'photoslot', bw: 980, bh: 600, x: 820, y: 760, s: 1, r: 0, o: 1, f: 0, sw: 25 },
+        { k: 'text', t: 'MEMORIES', fn: 'Jua', c: '#7f5539', fs: 120, w: 820, h: 150, x: 820, y: 1180, s: 1, r: 0, o: 1, f: 0 },
+        { k: 'photoslot', bw: 980, bh: 600, x: 820, y: 1640, s: 1, r: 0, o: 1, f: 0, sw: 25 },
+        { k: 'text', t: 'plan, do, done', fn: 'Gowun Dodum', c: '#5b4632', fs: 130, w: 1180, h: 160, x: 2050, y: 330, s: 1, r: 0, o: 1, f: 0 },
+        { k: 'sticker', sh: 'postit', x: 2050, y: 860, s: 1.6, r: 0, o: 1, f: 0, c: '#ffffff', p: 'check', sw: 18 },
+        { k: 'sticker', sh: 'pin', x: 2050, y: 590, s: 0.8, r: 0, o: 1, f: 0, c: '#b08968', sw: 10 },
+        { k: 'calendar', x: 3120, y: 640, s: 1.15, r: 0, o: 1, f: 0, co: '#ffffff', ac: '#b08968', sw: 30 },
+        { k: 'dday', x: 3120, y: 1330, s: 1.05, r: 0, o: 1, f: 0, co: '#26202a', ac: '#ffffff', cp: 'D-day', sw: 30 },
+      ] },
+      filmdiary: { preset: 'laptop', bg: { type: 'color', color: '#26202a', grad: 0, gc: null, pattern: 'dots', patternColor: '#fff0f3' }, effect: 'grain', fxi: 40, stickerColor: '#f5a623', layers: [
+        { k: 'text', t: 'film diary', fn: 'Jua', c: '#f6e7c8', fs: 170, w: 1020, h: 210, x: 1350, y: 420, s: 1, r: 0, o: 1, f: 0 },
+        { k: 'film', x: 1400, y: 1120, s: 1.45, r: -3, o: 1, f: 0, sw: 35 },
+        { k: 'fourcut', x: 3080, y: 1080, s: 1.02, r: 0, o: 1, f: 0, fc: '#ffffff', cc: '#26202a', sw: 35 },
+        { k: 'ticket', x: 1350, y: 1780, s: 1.05, r: 0, o: 1, f: 0, co: '#f6e7c8', ac: '#40382c', cp: 'OUR MOVIE NIGHT', sw: 30 },
+        { k: 'sticker', sh: 'sparkle', x: 3350, y: 330, s: 1.0, r: 0, o: 1, f: 0, c: '#f5a623', sw: 0 },
+        { k: 'sticker', sh: 'star', x: 500, y: 1780, s: 0.9, r: 0, o: 1, f: 0, c: '#f6e7c8', sw: 12 },
+      ] },
+      study: { preset: 'laptop', bg: { type: 'gradient', color: '#dcf5ec', grad: 0, gc: ['#dcf5ec', '#e0f0fd'], pattern: 'dots', patternColor: '#fff0f3' }, effect: 'none', fxi: 50, stickerColor: '#17b890', layers: [
+        { k: 'calendar', x: 720, y: 660, s: 1.1, r: 0, o: 1, f: 0, co: '#ffffff', ac: '#17b890', sw: 30 },
+        { k: 'player', x: 1980, y: 480, s: 1.25, r: 0, o: 1, f: 0, co: '#211d28', ac: '#17b890', cp: 'lofi beats', t: 'study playlist', sw: 30 },
+        { k: 'text', t: 'focus, breathe, begin', fn: 'Gowun Dodum', c: '#2c4a3b', fs: 165, w: 1980, h: 200, x: 1980, y: 1180, s: 1, r: 0, o: 1, f: 0 },
+        { k: 'dday', x: 1980, y: 1620, s: 1.1, r: 0, o: 1, f: 0, co: '#26202a', ac: '#ffffff', cp: 'Exam day', sw: 30 },
+        { k: 'sticker', sh: 'postit', x: 3180, y: 820, s: 1.45, r: 0, o: 1, f: 0, c: '#fff3c9', p: 'check', sw: 18 },
+        { k: 'sticker', sh: 'note', x: 3250, y: 1560, s: 1.2, r: 0, o: 1, f: 0, c: '#17b890', sw: 15 },
+      ] },
+      y2k: { preset: 'laptop', bg: { type: 'gradient', color: '#f0abfc', grad: 0, gc: ['#f0abfc', '#a5f3fc'], pattern: 'dots', patternColor: '#fff0f3' }, effect: 'sparkle', fxi: 80, stickerColor: '#e879f9', layers: [
+        { k: 'text', t: 'Y2K pop', fn: 'Jua', c: '#7c3aed', fs: 210, w: 1080, h: 260, x: 1980, y: 330, s: 1, r: 0, o: 1, f: 0 },
+        { k: 'cd', x: 1080, y: 1060, s: 1.5, r: 0, o: 1, f: 0, co: '#ececf2', ac: '#e879f9', cp: 'my mix', sw: 35 },
+        { k: 'window', x: 2720, y: 840, s: 1.3, r: 0, o: 1, f: 0, co: '#eef1f6', ac: '#7c3aed', cp: 'my playlist', sw: 30 },
+        { k: 'sticker', sh: 'star', x: 560, y: 420, s: 1.2, r: 0, o: 1, f: 0, c: '#ffffff', sw: 15 },
+        { k: 'sticker', sh: 'sparkle', x: 2050, y: 1620, s: 1.6, r: 0, o: 1, f: 0, c: '#7c3aed', sw: 0 },
+        { k: 'sticker', sh: 'bubble', x: 3300, y: 1560, s: 1.1, r: 0, o: 1, f: 0, c: '#a5f3fc', sw: 12 },
+        { k: 'sticker', sh: 'pixelheart', x: 2900, y: 1500, s: 1.0, r: 0, o: 1, f: 0, c: '#e879f9', sw: 15 },
+      ] },
+      cozy: { preset: 'laptop', bg: { type: 'gradient', color: '#f7e3c3', grad: 0, gc: ['#f7e3c3', '#e8b48c'], pattern: 'dots', patternColor: '#fff0f3' }, effect: 'grain', fxi: 30, stickerColor: '#b56545', layers: [
+        { k: 'cassette', x: 1020, y: 760, s: 1.3, r: 0, o: 1, f: 0, co: '#e9dfc9', ac: '#d4574e', cp: 'autumn mix', sw: 30 },
+        { k: 'photoslot', bw: 1020, bh: 680, x: 2050, y: 880, s: 1, r: 0, o: 1, f: 0, sw: 25 },
+        { k: 'receipt', x: 3180, y: 1120, s: 1.05, r: 0, o: 1, f: 0, co: '#ffffff', ac: '#2c2830', t: 'COZY DAY\ncoffee 4.50\npumpkin pie 6.00\nTOTAL 10.50', sw: 30 },
+        { k: 'text', t: 'autumn days', fn: 'Gaegu', c: '#7a4a2b', fs: 170, w: 1180, h: 210, x: 1900, y: 1680, s: 1, r: 0, o: 1, f: 0 },
+        { k: 'sticker', sh: 'maple', x: 560, y: 1560, s: 1.3, r: 0, o: 1, f: 0, c: '#b56545', sw: 15 },
+        { k: 'sticker', sh: 'flower', x: 3350, y: 380, s: 1.1, r: 0, o: 1, f: 0, c: '#d4574e', sw: 15 },
+      ] },
+    };
+    document.querySelectorAll('[data-template]').forEach(b => b.addEventListener('click', () => {
+      const d = TEMPLATES[b.dataset.template]; if (!d) return;
+      if (applyDesign(JSON.parse(JSON.stringify(d)))) toast('Template applied - now add your photos');
+    }));
+    const PALETTES = [
+      { name: 'Coquette', bg: ['#ffd9e3', '#fff6ec'], sticker: '#ff5d7e' },
+      { name: 'Dark Academia', bg: ['#3a2b20', '#8a5a3b'], sticker: '#c9a06a' },
+      { name: 'Cottagecore', bg: ['#e6f2dc', '#fdf3d8'], sticker: '#7ba05b' },
+      { name: 'Y2K Pop', bg: ['#f0abfc', '#a5f3fc'], sticker: '#e879f9' },
+      { name: 'Frutiger Aero', bg: ['#aee9ff', '#d9f99d'], sticker: '#38bdf8' },
+      { name: 'Beige Minimal', bg: ['#f5efe6', '#e8dcc8'], sticker: '#b08968' },
+      { name: 'Midnight', bg: ['#141824', '#2c3a5e'], sticker: '#8ea6e8' },
+    ];
+    function applyPalette(p) {
+      pushHistory();
+      W.bg.type = 'gradient'; W.bg.gradCustom = p.bg.slice(); W.bg.img = null;
+      W.stickerColor = p.sticker;
+      pushRecent(p.bg[0]); pushRecent(p.bg[1]); pushRecent(p.sticker);
+      syncBgUI(); renderWall();
+      toast(p.name + ' palette applied');
+    }
+    (function buildPalettes() {
+      const row = $('#pal-row'); if (!row) return;
+      PALETTES.forEach(p => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'pal-chip';
+        b.innerHTML = '<span class="pal-dot" style="background:linear-gradient(135deg,' + p.bg[0] + ',' + p.bg[1] + ')"></span>' + p.name;
+        b.addEventListener('click', () => applyPalette(p));
+        row.appendChild(b);
+      });
+    })();
+    /* photo color matching */
+    function colorDist(h1, h2) { const a = parseInt(h1.slice(1), 16), b = parseInt(h2.slice(1), 16); return Math.abs(((a >> 16) & 255) - ((b >> 16) & 255)) + Math.abs(((a >> 8) & 255) - ((b >> 8) & 255)) + Math.abs((a & 255) - (b & 255)); }
+    function extractColors(img) {
+      const S = 72, c = document.createElement('canvas'); c.width = S; c.height = S;
+      const g = c.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, 0, S, S);
+      let data; try { data = g.getImageData(0, 0, S, S).data; } catch (e) { return []; }
+      const buckets = new Map();
+      for (let i = 0; i < data.length; i += 16) {
+        if (data[i + 3] < 200) continue;
+        const key = ((data[i] & 224) << 16) | ((data[i + 1] & 224) << 8) | (data[i + 2] & 224);
+        const e = buckets.get(key) || { n: 0, r: 0, g: 0, b: 0 };
+        e.n++; e.r += data[i]; e.g += data[i + 1]; e.b += data[i + 2];
+        buckets.set(key, e);
+      }
+      const sorted = [...buckets.values()].sort((a, b) => b.n - a.n);
+      const out = [];
+      for (const e of sorted) {
+        const hex = '#' + [e.r / e.n, e.g / e.n, e.b / e.n].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+        if (out.every(o => colorDist(o, hex) > 60)) out.push(hex);
+        if (out.length >= 5) break;
+      }
+      return out;
+    }
+    let matchedColors = [];
+    $('#match-input').addEventListener('change', async (e) => {
+      const f = e.target.files[0]; e.target.value = '';
+      if (!f) return;
+      try {
+        const img = await loadImageFromFile(f);
+        matchedColors = extractColors(img);
+        const row = $('#match-swatches'); row.innerHTML = '';
+        matchedColors.forEach(hex => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'match-swatch'; b.style.background = hex; b.title = hex; b.setAttribute('aria-label', 'Use color ' + hex);
+          b.addEventListener('click', () => { pushHistory(); W.bg.type = 'color'; W.bg.color = hex; W.bg.img = null; pushRecent(hex); syncBgUI(); renderWall(); toast('Background color set to ' + hex); });
+          row.appendChild(b);
+        });
+        $('#match-grad-row').classList.toggle('hidden', matchedColors.length < 2);
+        if (!matchedColors.length) toast('Could not read colors from that photo');
+        else toast('Tap a color to use it as the background');
+      } catch { toast("Couldn't load that photo"); }
+    });
+    $('#btn-match-grad').addEventListener('click', () => {
+      if (matchedColors.length < 2) return;
+      pushHistory(); W.bg.type = 'gradient'; W.bg.gradCustom = [matchedColors[0], matchedColors[1]]; W.bg.img = null;
+      syncBgUI(); renderWall(); toast('Gradient set from your photo colors');
+    });
+    /* autosave + my designs */
+    const AUTOSAVE_KEY = 'wallpaper_autosave_v1';
+    const SLOT_KEY = 'wallpaper_slot_';
+    let autosaveTimer = null;
+    function scheduleAutosave() {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => { try { localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(serializeDesign())); } catch (e) { /* storage full or private mode */ } }, 900);
+    }
+    function restoreAutosave() {
+      if (location.hash && location.hash.indexOf('#d=') === 0) return;
+      try {
+        const raw = localStorage.getItem(AUTOSAVE_KEY);
+        if (!raw) return;
+        const d = JSON.parse(raw);
+        if (d && Array.isArray(d.layers) && d.layers.length) { applyDesign(d); toast('Restored your last design - photo spots are empty, add your photos'); }
+      } catch (e) { /* ignore */ }
+    }
+    function refreshSlotLabels() {
+      for (let i = 0; i < 3; i++) {
+        const el = document.getElementById('slot-label-' + i); if (!el) continue;
+        let label = 'Slot ' + (i + 1) + ' - empty';
+        try {
+          const raw = localStorage.getItem(SLOT_KEY + i);
+          if (raw) { const d = JSON.parse(raw); label = 'Slot ' + (i + 1) + ' - ' + (d.savedAt ? new Date(d.savedAt).toLocaleDateString() : 'saved') + ' · ' + (d.layers ? d.layers.length : 0) + ' elements'; }
+        } catch (e) { /* ignore */ }
+        el.textContent = label;
+      }
+    }
+    (function buildMyDesigns() {
+      const wrap = $('#mydesigns'); if (!wrap) return;
+      for (let i = 0; i < 3; i++) {
+        const row = document.createElement('div'); row.className = 'slot-row';
+        const label = document.createElement('span'); label.className = 'slot-label'; label.id = 'slot-label-' + i; label.textContent = 'Slot ' + (i + 1) + ' - empty';
+        const save = document.createElement('button'); save.className = 'btn'; save.type = 'button'; save.textContent = 'Save here';
+        const load = document.createElement('button'); load.className = 'btn'; load.type = 'button'; load.textContent = 'Load';
+        save.addEventListener('click', () => {
+          try { const d = serializeDesign(); d.savedAt = Date.now(); localStorage.setItem(SLOT_KEY + i, JSON.stringify(d)); refreshSlotLabels(); toast('Design saved in slot ' + (i + 1)); }
+          catch (e) { toast('Could not save - browser storage is full'); }
+        });
+        load.addEventListener('click', () => {
+          try { const raw = localStorage.getItem(SLOT_KEY + i); if (!raw) { toast('That slot is empty'); return; } if (applyDesign(JSON.parse(raw))) toast('Design loaded from slot ' + (i + 1)); }
+          catch (e) { toast('Could not load that design'); }
+        });
+        row.appendChild(label); row.appendChild(save); row.appendChild(load);
+        wrap.appendChild(row);
+      }
+    })();
+    /* selected-element extras */
+    $('#sel-shadow').addEventListener('input', (e) => { const s = sel(); if (s) { s.shadow = +e.target.value; $('#sel-shadow-val').textContent = e.target.value + '%'; renderWall(); } });
+    document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { const s = sel(); if (!s) return; pushHistory(); s.filter = b.dataset.filter; syncSelPanel(); renderWall(); }));
+    document.querySelectorAll('[data-postitpat]').forEach(b => b.addEventListener('click', () => { const s = sel(); if (!s) return; pushHistory(); s.pattern = b.dataset.postitpat; syncSelPanel(); renderWall(); }));
+    $('#btn-iconprev').addEventListener('click', () => {
+      W.iconPreview = !W.iconPreview;
+      $('#btn-iconprev').setAttribute('aria-pressed', String(W.iconPreview));
+      renderWall();
+      toast(W.iconPreview ? 'Showing where your desktop icons will sit' : 'Icon preview off');
+    });
+    /* quotes */
+    const QUOTES = [
+      { t: 'today is a good day', fn: 'Jua', c: '#26202a' },
+      { t: 'stay cozy', fn: 'Gaegu', c: '#7a4a2b' },
+      { t: 'focus, breathe, begin', fn: 'Gowun Dodum', c: '#2c4a3b' },
+      { t: 'you are doing great', fn: 'Jua', c: '#e5486c' },
+    ];
+    document.querySelectorAll('[data-quote]').forEach(b => b.addEventListener('click', () => {
+      const q = QUOTES[+b.dataset.quote]; if (!q) return;
+      $('#text-input').value = q.t; $('#text-font').value = q.fn; $('#text-color').value = q.c;
+      $('#btn-add-text').click();
+    }));
+    /* matching folder icons */
+    const FOLDER_COLORS = ['#ffd166', '#ffb3c7', '#a8d8ea', '#b8e6c9', '#d5b8ea', '#f2b880'];
+    const FOLDER_MOTIFS = ['heart', 'star', 'sparkle', 'flower', 'moon', 'bow'];
+    function shadeHex(hex, amt) { const n = parseInt(hex.slice(1), 16); const f = v => Math.max(0, Math.min(255, v + amt)); return '#' + [f((n >> 16) & 255), f((n >> 8) & 255), f(n & 255)].map(v => v.toString(16).padStart(2, '0')).join(''); }
+    function makeFolderIcon(i) {
+      const S = 512, c = document.createElement('canvas'); c.width = S; c.height = S;
+      const g = c.getContext('2d');
+      const col = FOLDER_COLORS[i % FOLDER_COLORS.length];
+      g.fillStyle = shadeHex(col, -25);
+      rrPath(g, 52, 104, 205, 80, 26); g.fill();
+      g.fillStyle = col;
+      rrPath(g, 36, 148, 440, 272, 30); g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.18)';
+      rrPath(g, 36, 148, 440, 54, 27); g.fill();
+      g.save(); g.translate(256, 296); g.scale(1.45, 1.45);
+      g.fillStyle = 'rgba(255,255,255,0.92)';
+      SHAPES[FOLDER_MOTIFS[i % FOLDER_MOTIFS.length]].path(g); g.fill();
+      g.restore();
+      return c;
+    }
+    (function buildFolderGrid() {
+      const wrap = $('#folder-grid'); if (!wrap) return;
+      FOLDER_COLORS.forEach((col, i) => {
+        const b = document.createElement('button'); b.type = 'button';
+        b.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:' + col + ';vertical-align:-2px;margin-right:5px"></span>Icon ' + (i + 1);
+        b.addEventListener('click', () => { downloadCanvas(makeFolderIcon(i), 'folder-icon-' + (i + 1) + '.png'); toast('Folder icon ' + (i + 1) + ' saved as PNG'); });
+        wrap.appendChild(b);
+      });
+    })();
 
     /* ================= init ================= */
     syncBgUI();
@@ -2337,6 +2802,8 @@
     syncFcPanel();
     renderFC();
     loadSharedDesign();
+    restoreAutosave();
+    refreshSlotLabels();
     </script>
   </body>
 </html>
