@@ -185,9 +185,6 @@
       }
       .val { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 
-      .tpl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-      .tpl-grid button { padding: 10px 8px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--panel-2, #fff7fa); font-weight: 600; cursor: pointer; }
-      .tpl-grid button:hover { border-color: var(--pink); }
       .pal-row { display: flex; flex-wrap: wrap; gap: 6px; }
       .pal-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 6px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; font-weight: 600; font-size: 12.5px; }
       .pal-chip:hover { border-color: var(--pink); }
@@ -294,17 +291,7 @@
 
         <div class="panel">
           <section class="card">
-            <h3><span class="dot" style="background:var(--pink)"></span>Start from a design</h3>
-            <p class="desc">No blank-page stress. Pick a ready-made layout, then swap in your own photos.</p>
-            <div class="tpl-grid">
-              <button type="button" data-template="coquette">Coquette pink</button>
-              <button type="button" data-template="organizer">Desktop organizer</button>
-              <button type="button" data-template="filmdiary">Film diary</button>
-              <button type="button" data-template="study">Study focus</button>
-              <button type="button" data-template="y2k">Y2K pop</button>
-              <button type="button" data-template="cozy">Cozy autumn</button>
-            </div>
-            <hr class="divider" />
+            <h3><span class="dot" style="background:var(--pink)"></span>Color mood & my designs</h3>
             <div class="field">
               <label>Color mood (one click sets the whole palette)</label>
               <div class="pal-row" id="pal-row"></div>
@@ -2560,65 +2547,6 @@
       for (const y of activeGuides.h) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
       ctx.restore();
     }
-    const TEMPLATES = {
-      coquette: { preset: 'laptop', bg: { type: 'color', color: '#ffe3ea', grad: 0, gc: null, pattern: 'dots', patternColor: '#fff0f3' }, effect: 'sparkle', fxi: 55, stickerColor: '#ff5d7e', layers: [
-        { k: 'polaroid', x: 1180, y: 1100, s: 1.5, r: -4, o: 1, f: 0, sw: 35, cp: 'my favorite day' },
-        { k: 'sticker', sh: 'tape', x: 1180, y: 430, s: 1.5, r: -6, o: 1, f: 0, c: '#ffd6e0', sw: 10 },
-        { k: 'text', t: 'my little world', fn: 'Jua', c: '#e5486c', fs: 200, w: 1560, h: 250, x: 2620, y: 760, s: 1, r: -2, o: 1, f: 0 },
-        { k: 'sticker', sh: 'bow', x: 3250, y: 480, s: 1.2, r: 8, o: 1, f: 0, c: '#ff8fab', sw: 18 },
-        { k: 'sticker', sh: 'heart', x: 2780, y: 1230, s: 1.3, r: 0, o: 1, f: 0, c: '#ff5d7e', sw: 18 },
-        { k: 'sticker', sh: 'postit', x: 2950, y: 1620, s: 1.25, r: 3, o: 1, f: 0, c: '#fff3c9', p: 'lined', sw: 18 },
-        { k: 'sticker', sh: 'sparkle', x: 2050, y: 420, s: 0.9, r: 0, o: 1, f: 0, c: '#ffffff', sw: 0 },
-      ] },
-      organizer: { preset: 'laptop', bg: { type: 'gradient', color: '#f5efe6', grad: 0, gc: ['#f5efe6', '#e8dcc8'], pattern: 'dots', patternColor: '#fff0f3' }, effect: 'none', fxi: 50, stickerColor: '#b08968', layers: [
-        { k: 'text', t: 'TO DO', fn: 'Jua', c: '#7f5539', fs: 120, w: 450, h: 150, x: 820, y: 300, s: 1, r: 0, o: 1, f: 0 },
-        { k: 'photoslot', bw: 980, bh: 600, x: 820, y: 760, s: 1, r: 0, o: 1, f: 0, sw: 25 },
-        { k: 'text', t: 'MEMORIES', fn: 'Jua', c: '#7f5539', fs: 120, w: 820, h: 150, x: 820, y: 1180, s: 1, r: 0, o: 1, f: 0 },
-        { k: 'photoslot', bw: 980, bh: 600, x: 820, y: 1640, s: 1, r: 0, o: 1, f: 0, sw: 25 },
-        { k: 'text', t: 'plan, do, done', fn: 'Gowun Dodum', c: '#5b4632', fs: 130, w: 1180, h: 160, x: 2050, y: 330, s: 1, r: 0, o: 1, f: 0 },
-        { k: 'sticker', sh: 'postit', x: 2050, y: 860, s: 1.6, r: 0, o: 1, f: 0, c: '#ffffff', p: 'check', sw: 18 },
-        { k: 'sticker', sh: 'pin', x: 2050, y: 590, s: 0.8, r: 0, o: 1, f: 0, c: '#b08968', sw: 10 },
-        { k: 'calendar', x: 3120, y: 640, s: 1.15, r: 0, o: 1, f: 0, co: '#ffffff', ac: '#b08968', sw: 30 },
-        { k: 'dday', x: 3120, y: 1330, s: 1.05, r: 0, o: 1, f: 0, co: '#26202a', ac: '#ffffff', cp: 'D-day', sw: 30 },
-      ] },
-      filmdiary: { preset: 'laptop', bg: { type: 'color', color: '#26202a', grad: 0, gc: null, pattern: 'dots', patternColor: '#fff0f3' }, effect: 'grain', fxi: 40, stickerColor: '#f5a623', layers: [
-        { k: 'text', t: 'film diary', fn: 'Jua', c: '#f6e7c8', fs: 170, w: 1020, h: 210, x: 1350, y: 420, s: 1, r: 0, o: 1, f: 0 },
-        { k: 'film', x: 1400, y: 1120, s: 1.45, r: -3, o: 1, f: 0, sw: 35 },
-        { k: 'fourcut', x: 3080, y: 1080, s: 1.02, r: 0, o: 1, f: 0, fc: '#ffffff', cc: '#26202a', sw: 35 },
-        { k: 'ticket', x: 1350, y: 1780, s: 1.05, r: 0, o: 1, f: 0, co: '#f6e7c8', ac: '#40382c', cp: 'OUR MOVIE NIGHT', sw: 30 },
-        { k: 'sticker', sh: 'sparkle', x: 3350, y: 330, s: 1.0, r: 0, o: 1, f: 0, c: '#f5a623', sw: 0 },
-        { k: 'sticker', sh: 'star', x: 500, y: 1780, s: 0.9, r: 0, o: 1, f: 0, c: '#f6e7c8', sw: 12 },
-      ] },
-      study: { preset: 'laptop', bg: { type: 'gradient', color: '#dcf5ec', grad: 0, gc: ['#dcf5ec', '#e0f0fd'], pattern: 'dots', patternColor: '#fff0f3' }, effect: 'none', fxi: 50, stickerColor: '#17b890', layers: [
-        { k: 'calendar', x: 720, y: 660, s: 1.1, r: 0, o: 1, f: 0, co: '#ffffff', ac: '#17b890', sw: 30 },
-        { k: 'player', x: 1980, y: 480, s: 1.25, r: 0, o: 1, f: 0, co: '#211d28', ac: '#17b890', cp: 'lofi beats', t: 'study playlist', sw: 30 },
-        { k: 'text', t: 'focus, breathe, begin', fn: 'Gowun Dodum', c: '#2c4a3b', fs: 165, w: 1980, h: 200, x: 1980, y: 1180, s: 1, r: 0, o: 1, f: 0 },
-        { k: 'dday', x: 1980, y: 1620, s: 1.1, r: 0, o: 1, f: 0, co: '#26202a', ac: '#ffffff', cp: 'Exam day', sw: 30 },
-        { k: 'sticker', sh: 'postit', x: 3180, y: 820, s: 1.45, r: 0, o: 1, f: 0, c: '#fff3c9', p: 'check', sw: 18 },
-        { k: 'sticker', sh: 'note', x: 3250, y: 1560, s: 1.2, r: 0, o: 1, f: 0, c: '#17b890', sw: 15 },
-      ] },
-      y2k: { preset: 'laptop', bg: { type: 'gradient', color: '#f0abfc', grad: 0, gc: ['#f0abfc', '#a5f3fc'], pattern: 'dots', patternColor: '#fff0f3' }, effect: 'sparkle', fxi: 80, stickerColor: '#e879f9', layers: [
-        { k: 'text', t: 'Y2K pop', fn: 'Jua', c: '#7c3aed', fs: 210, w: 1080, h: 260, x: 1980, y: 330, s: 1, r: 0, o: 1, f: 0 },
-        { k: 'cd', x: 1080, y: 1060, s: 1.5, r: 0, o: 1, f: 0, co: '#ececf2', ac: '#e879f9', cp: 'my mix', sw: 35 },
-        { k: 'window', x: 2720, y: 840, s: 1.3, r: 0, o: 1, f: 0, co: '#eef1f6', ac: '#7c3aed', cp: 'my playlist', sw: 30 },
-        { k: 'sticker', sh: 'star', x: 560, y: 420, s: 1.2, r: 0, o: 1, f: 0, c: '#ffffff', sw: 15 },
-        { k: 'sticker', sh: 'sparkle', x: 2050, y: 1620, s: 1.6, r: 0, o: 1, f: 0, c: '#7c3aed', sw: 0 },
-        { k: 'sticker', sh: 'bubble', x: 3300, y: 1560, s: 1.1, r: 0, o: 1, f: 0, c: '#a5f3fc', sw: 12 },
-        { k: 'sticker', sh: 'pixelheart', x: 2900, y: 1500, s: 1.0, r: 0, o: 1, f: 0, c: '#e879f9', sw: 15 },
-      ] },
-      cozy: { preset: 'laptop', bg: { type: 'gradient', color: '#f7e3c3', grad: 0, gc: ['#f7e3c3', '#e8b48c'], pattern: 'dots', patternColor: '#fff0f3' }, effect: 'grain', fxi: 30, stickerColor: '#b56545', layers: [
-        { k: 'cassette', x: 1020, y: 760, s: 1.3, r: 0, o: 1, f: 0, co: '#e9dfc9', ac: '#d4574e', cp: 'autumn mix', sw: 30 },
-        { k: 'photoslot', bw: 1020, bh: 680, x: 2050, y: 880, s: 1, r: 0, o: 1, f: 0, sw: 25 },
-        { k: 'receipt', x: 3180, y: 1120, s: 1.05, r: 0, o: 1, f: 0, co: '#ffffff', ac: '#2c2830', t: 'COZY DAY\ncoffee 4.50\npumpkin pie 6.00\nTOTAL 10.50', sw: 30 },
-        { k: 'text', t: 'autumn days', fn: 'Gaegu', c: '#7a4a2b', fs: 170, w: 1180, h: 210, x: 1900, y: 1680, s: 1, r: 0, o: 1, f: 0 },
-        { k: 'sticker', sh: 'maple', x: 560, y: 1560, s: 1.3, r: 0, o: 1, f: 0, c: '#b56545', sw: 15 },
-        { k: 'sticker', sh: 'flower', x: 3350, y: 380, s: 1.1, r: 0, o: 1, f: 0, c: '#d4574e', sw: 15 },
-      ] },
-    };
-    document.querySelectorAll('[data-template]').forEach(b => b.addEventListener('click', () => {
-      const d = TEMPLATES[b.dataset.template]; if (!d) return;
-      if (applyDesign(JSON.parse(JSON.stringify(d)))) toast('Template applied - now add your photos');
-    }));
     const PALETTES = [
       { name: 'Coquette', bg: ['#ffd9e3', '#fff6ec'], sticker: '#ff5d7e' },
       { name: 'Dark Academia', bg: ['#3a2b20', '#8a5a3b'], sticker: '#c9a06a' },
