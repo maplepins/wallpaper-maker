@@ -291,26 +291,10 @@
 
         <div class="panel">
           <section class="card">
-            <h3><span class="dot" style="background:var(--pink)"></span>Color mood & my designs</h3>
+            <h3><span class="dot" style="background:var(--pink)"></span>Colors</h3>
             <div class="field">
               <label>Color mood (one click sets the whole palette)</label>
               <div class="pal-row" id="pal-row"></div>
-            </div>
-            <hr class="divider" />
-            <div class="field">
-              <label>My designs (saved in this browser)</label>
-              <div id="mydesigns"></div>
-              <p class="desc" style="margin-top:6px">Your current design also auto-saves as you work, so a refresh never loses it. Photo spots are saved empty - just add your photos again.</p>
-            </div>
-          </section>
-
-          <section class="card">
-            <h3><span class="dot" style="background:var(--sky)"></span>Canvas &amp; Background</h3>
-            <div class="seg" role="group" aria-label="Aspect ratio">
-              <button id="preset-laptop" data-preset="laptop" aria-pressed="true">Laptop 16:9 · 3840×2160</button>
-              <button id="preset-ipad" data-preset="ipad" aria-pressed="false">iPad 4:3 · 2752×2064</button>
-              <button data-preset="wide" aria-pressed="false">Ultrawide 21:9 · 3440×1440</button>
-              <button data-preset="mac" aria-pressed="false">Laptop 16:10 · 2560×1600</button>
             </div>
             <hr class="divider" />
             <div class="row" role="group" aria-label="Background type">
@@ -367,6 +351,37 @@
                 <input type="color" id="pattern-base-custom" class="color-big" value="#ffe3ea" aria-label="Custom pattern base color" />
               </div>
             </div>
+            <div id="bg-photo-ui" class="hidden">
+              <p class="desc">Pick a photo for the background and it fills the canvas. The original resolution is kept as is.</p>
+              <label class="btn primary block" for="bg-photo-input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5-5 3 3 3-4 5 6"/></svg>
+                Choose background photo
+              </label>
+              <input type="file" id="bg-photo-input" accept="image/*" />
+              <hr class="divider" />
+              <p class="desc">Or match the colors to a photo you love - we pull its main colors for you.</p>
+              <label class="btn block" for="match-input">Pick a photo to match colors</label>
+              <input type="file" id="match-input" accept="image/*" />
+              <div class="match-row" id="match-swatches"></div>
+              <div class="row hidden" id="match-grad-row"><button class="btn" id="btn-match-grad" type="button" style="flex:1">Use top two colors as a gradient</button></div>
+            </div>
+            <hr class="divider" />
+            <div class="field">
+              <label>My designs (saved in this browser)</label>
+              <div id="mydesigns"></div>
+              <p class="desc" style="margin-top:6px">Your current design also auto-saves as you work, so a refresh never loses it. Photo spots are saved empty - just add your photos again.</p>
+            </div>
+          </section>
+
+          <section class="card">
+            <h3><span class="dot" style="background:var(--sky)"></span>Canvas &amp; effects</h3>
+            <div class="seg" role="group" aria-label="Aspect ratio">
+              <button id="preset-laptop" data-preset="laptop" aria-pressed="true">Laptop 16:9 · 3840×2160</button>
+              <button id="preset-ipad" data-preset="ipad" aria-pressed="false">iPad 4:3 · 2752×2064</button>
+              <button data-preset="wide" aria-pressed="false">Ultrawide 21:9 · 3440×1440</button>
+              <button data-preset="mac" aria-pressed="false">Laptop 16:10 · 2560×1600</button>
+            </div>
+            <hr class="divider" />
             <div class="field" style="margin-top:10px">
               <label>Overlay effect (animated)</label>
               <div class="row" role="group" aria-label="Overlay effect">
@@ -383,20 +398,6 @@
                 <button class="btn" id="btn-video" style="flex:1">Export animated video (4 sec)</button>
               </div>
               <p class="desc" style="margin-top:6px">The effect moves on screen and in shared design links. A PNG is a still image, so a saved wallpaper stays still - to keep the motion, export the video and set it with a live wallpaper app (for example Lively Wallpaper on Windows, free).</p>
-            </div>
-            <div id="bg-photo-ui" class="hidden">
-              <p class="desc">Pick a photo for the background and it fills the canvas. The original resolution is kept as is.</p>
-              <label class="btn primary block" for="bg-photo-input">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5-5 3 3 3-4 5 6"/></svg>
-                Choose background photo
-              </label>
-              <input type="file" id="bg-photo-input" accept="image/*" />
-              <hr class="divider" />
-              <p class="desc">Or match the colors to a photo you love - we pull its main colors for you.</p>
-              <label class="btn block" for="match-input">Pick a photo to match colors</label>
-              <input type="file" id="match-input" accept="image/*" />
-              <div class="match-row" id="match-swatches"></div>
-              <div class="row hidden" id="match-grad-row"><button class="btn" id="btn-match-grad" type="button" style="flex:1">Use top two colors as a gradient</button></div>
             </div>
           </section>
 
